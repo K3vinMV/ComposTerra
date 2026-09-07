@@ -1,19 +1,30 @@
-"""POST /predicciones/{id_lote} — genera y guarda una predicción de calidad.
+"""POST /predicciones/{id_lote} — clasifica el estado actual del proceso.
 
-Flujo: promedia los registros del sensor del lote → Random Forest →
-guarda resultado + confianza en la tabla predicciones.
+Flujo:
+    1. Calcula el avance del ciclo (progreso = días transcurridos / duración estimada).
+    2. Promedia las lecturas recientes del sensor (ventana de 24 h).
+    3. Clasifica con el Random Forest y persiste el resultado.
+
+Por qué una ventana reciente y no todo el historial: el modelo estima el estado
+del proceso en un punto del ciclo, así que las lecturas deben corresponder a ese
+mismo momento. Promediar semanas de historia mezclaría fases distintas del
+proceso y contradiría el significado de la variable `progreso`.
 """
+from datetime import datetime, timedelta
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user
-from app.core.ml import predecir_calidad
+from app.core.ml import predecir_estado
 from app.database import get_db
 from app.models import Lote, Prediccion, RegistroSensor, Usuario
 from app.schemas import PrediccionOut
 
 router = APIRouter(prefix="/predicciones", tags=["predicciones"])
+
+VENTANA_HORAS = 24
 
 
 @router.post("/{id_lote}", response_model=PrediccionOut, status_code=status.HTTP_201_CREATED)
@@ -22,33 +33,47 @@ def crear_prediccion(
     db: Session = Depends(get_db),
     _: Usuario = Depends(get_current_user),
 ):
-    if db.get(Lote, id_lote) is None:
+    lote = db.get(Lote, id_lote)
+    if lote is None:
         raise HTTPException(status_code=404, detail=f"Lote {id_lote} no encontrado")
 
-    promedios = (
-        db.query(
-            func.avg(RegistroSensor.temperatura),
-            func.avg(RegistroSensor.humedad),
-            func.avg(RegistroSensor.ph),
-        )
-        .filter(RegistroSensor.id_lote == id_lote)
-        .one()
-    )
+    # --- 1. Avance del ciclo, normalizado a [0, 1] ---
+    dias_transcurridos = (datetime.now().date() - lote.fecha_inicio).days
+    duracion = lote.duracion_estimada_dias or 120
+    progreso = min(max(dias_transcurridos / duracion, 0.0), 1.0)
+
+    # --- 2. Lecturas recientes ---
+    desde = datetime.now() - timedelta(hours=VENTANA_HORAS)
+    consulta = db.query(
+        func.avg(RegistroSensor.temperatura),
+        func.avg(RegistroSensor.humedad),
+        func.avg(RegistroSensor.ph),
+    ).filter(RegistroSensor.id_lote == id_lote)
+
+    promedios = consulta.filter(RegistroSensor.timestamp >= desde).one()
+    if promedios[0] is None:
+        # Sin lecturas en la ventana: se recurre al historial completo del lote
+        promedios = consulta.one()
     if promedios[0] is None:
         raise HTTPException(
             status_code=400,
             detail=f"El lote {id_lote} no tiene registros de sensor; no se puede predecir",
         )
 
+    # --- 3. Clasificación ---
     try:
-        resultado, confianza = predecir_calidad(
-            float(promedios[0]), float(promedios[1]), float(promedios[2])
+        resultado, confianza = predecir_estado(
+            progreso, float(promedios[0]), float(promedios[1]), float(promedios[2])
         )
     except FileNotFoundError as e:
         raise HTTPException(status_code=503, detail=str(e))
 
     prediccion = Prediccion(id_lote=id_lote, resultado=resultado, confianza=confianza)
-    db.add(prediccion)
-    db.commit()
-    db.refresh(prediccion)
+    try:
+        db.add(prediccion)
+        db.commit()
+        db.refresh(prediccion)
+    except Exception:
+        db.rollback()
+        raise
     return prediccion

@@ -31,6 +31,10 @@ CREATE TABLE IF NOT EXISTS lotes (
   fecha_inicio       DATE           NOT NULL,
   material_principal VARCHAR(100)   NOT NULL,
   peso_kg            DECIMAL(8,2)   NOT NULL,
+  -- Duración esperada del ciclo. Se usa para normalizar el tiempo transcurrido
+  -- (progreso = días transcurridos / duración estimada), que es una de las
+  -- variables de entrada del modelo de clasificación.
+  duracion_estimada_dias SMALLINT UNSIGNED NOT NULL DEFAULT 120,
   estado             ENUM('activo', 'finalizado') NOT NULL DEFAULT 'activo',
   PRIMARY KEY (id)
 ) ENGINE=InnoDB;

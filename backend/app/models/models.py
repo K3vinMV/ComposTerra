@@ -3,7 +3,8 @@ from datetime import date, datetime
 from decimal import Decimal
 
 from sqlalchemy import (
-    DECIMAL, BigInteger, Date, DateTime, Enum, ForeignKey, Index, String, func,
+    DECIMAL, BigInteger, Date, DateTime, Enum, ForeignKey, Index, SmallInteger,
+    String, func,
 )
 from sqlalchemy.dialects.mysql import BIGINT, INTEGER
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -34,6 +35,8 @@ class Lote(Base):
     fecha_inicio: Mapped[date] = mapped_column(Date)
     material_principal: Mapped[str] = mapped_column(String(100))
     peso_kg: Mapped[Decimal] = mapped_column(DECIMAL(8, 2))
+    # Duración esperada del ciclo; normaliza el tiempo para el modelo ML
+    duracion_estimada_dias: Mapped[int] = mapped_column(SmallInteger, server_default="120")
     estado: Mapped[str] = mapped_column(
         Enum("activo", "finalizado", name="estado_enum"), server_default="activo"
     )

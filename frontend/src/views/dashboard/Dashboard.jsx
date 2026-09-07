@@ -15,7 +15,14 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { getLotes, getRegistros, RANGOS } from '../../api/composta'
+import {
+  getLotes,
+  getRegistros,
+  RANGOS,
+  requiereAlerta,
+  fase,
+  progresoLote,
+} from '../../api/composta'
 import { IconoHoja, IconoAlerta, IconoOk } from '../../components/icons'
 
 const COLORES = { temperatura: '#E5A98F', humedad: '#A9C6E2', ph: '#A8D5B0' }
@@ -71,18 +78,37 @@ const Dashboard = () => {
   }, [refrescar])
 
   const ultimo = historico.length > 0 ? historico[historico.length - 1] : null
-  const alertas = ultimo ? Object.keys(RANGOS).filter((p) => fueraDeRango(p, ultimo[p])) : []
+  const loteSel = lotes.find((l) => String(l.id) === idLote)
+  const enMaduracion = loteSel && fase(loteSel) === 'maduracion'
+  const alertas = ultimo
+    ? Object.keys(RANGOS).filter((p) => requiereAlerta(p, ultimo[p], loteSel))
+    : []
   const lotesActivos = lotes.filter((l) => l.estado === 'activo').length
   const enRango = ultimo ? 3 - alertas.length : 0
   const circunferencia = 2 * Math.PI * 62
   const anillo = ultimo ? (enRango / 3) * circunferencia : 0
   const colorAnillo = !ultimo ? 'rgba(255,255,255,0.25)' : alertas.length === 0 ? 'var(--acento)' : alertas.length < 3 ? '#E8C574' : '#E5A98F'
-  const loteSel = lotes.find((l) => String(l.id) === idLote)
 
   const kpi = (param) => {
     const r = RANGOS[param]
     const v = ultimo ? ultimo[param] : null
-    const mal = v !== null && fueraDeRango(param, v)
+    const alerta = v !== null && requiereAlerta(param, v, loteSel)
+    // Fuera del rango activo pero sin alerta = descenso normal de la maduración
+    const normalizando = v !== null && !alerta && fueraDeRango(param, v)
+
+    let etiqueta = 'Óptimo'
+    let clase = 'ok'
+    if (v === null) {
+      etiqueta = 'Sin datos'
+      clase = 'neutro'
+    } else if (alerta) {
+      etiqueta = 'Fuera de rango'
+      clase = 'bad'
+    } else if (normalizando) {
+      etiqueta = 'Maduración'
+      clase = 'info'
+    }
+
     return (
       <div className="glass-card" key={param} style={{ padding: '18px 20px' }}>
         <div className="cm-kpi-label">{r.label} actual</div>
@@ -91,7 +117,7 @@ const Dashboard = () => {
           {v !== null && r.unidad && <span className="cm-kpi-unidad">{r.unidad}</span>}
         </div>
         <div style={{ marginTop: 8, display: 'flex', gap: 8, alignItems: 'center' }}>
-          <span className={`cm-pill ${mal ? 'bad' : 'ok'}`}>{v === null ? 'Sin datos' : mal ? 'Fuera de rango' : 'Óptimo'}</span>
+          <span className={`cm-pill ${clase}`}>{etiqueta}</span>
           <span style={{ fontSize: 11, color: 'rgba(250,249,246,0.5)' }}>
             {r.min}–{r.max}
             {r.unidad}
@@ -200,13 +226,25 @@ const Dashboard = () => {
             {!ultimo
               ? 'Este lote aún no tiene lecturas'
               : alertas.length === 0
-                ? 'Todo dentro de los parámetros ideales'
-                : `${enRango} de 3 parámetros en rango`}
+                ? enMaduracion
+                  ? 'Proceso en maduración, sin incidencias'
+                  : 'Todo dentro de los parámetros ideales'
+                : `${enRango} de 3 parámetros requieren atención`}
           </div>
           {loteSel && (
-            <div style={{ fontSize: 11.5, color: 'rgba(250,249,246,0.45)', marginTop: 10 }}>
-              {loteSel.material_principal} · {Number(loteSel.peso_kg).toFixed(1)} kg
-            </div>
+            <>
+              <div style={{ marginTop: 12 }}>
+                <span className={`cm-pill ${enMaduracion ? 'info' : 'ok'}`}>
+                  {enMaduracion ? 'Fase de maduración' : 'Fase activa'}
+                </span>
+              </div>
+              <div style={{ fontSize: 11.5, color: 'rgba(250,249,246,0.45)', marginTop: 10, textAlign: 'center' }}>
+                {Math.round(progresoLote(loteSel) * 100)}% del ciclo ·{' '}
+                {loteSel.duracion_estimada_dias} días estimados
+                <br />
+                {loteSel.material_principal} · {Number(loteSel.peso_kg).toFixed(1)} kg
+              </div>
+            </>
           )}
         </div>
       </div>
@@ -219,7 +257,11 @@ const Dashboard = () => {
           <div className="cm-alerta">
             <IconoOk size={18} color="#8FCB9B" />
             <span style={{ flex: 1 }}>
-              {ultimo ? 'Sin alertas: todos los parámetros están en su rango óptimo' : 'Sin lecturas del sensor todavía'}
+              {!ultimo
+                ? 'Sin lecturas del sensor todavía'
+                : enMaduracion
+                  ? 'El lote está en maduración: el enfriamiento y el secado son esperados en esta fase'
+                  : 'Sin alertas: todos los parámetros están en su rango óptimo'}
             </span>
             {ultimo && <span className="cm-pill ok">Éxito</span>}
           </div>

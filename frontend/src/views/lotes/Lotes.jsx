@@ -1,19 +1,30 @@
 /** Lotes — tabla glass con últimas lecturas por lote, alta y finalizar. */
 import React, { useEffect, useState } from 'react'
 import { CSpinner } from '@coreui/react'
-import { getLotes, getRegistros, crearLote, cambiarEstado, RANGOS } from '../../api/composta'
+import {
+  getLotes,
+  getRegistros,
+  crearLote,
+  cambiarEstado,
+  requiereAlerta,
+  fase,
+} from '../../api/composta'
 
 const hoy = () => new Date().toISOString().slice(0, 10)
 const COLS = '64px 110px minmax(120px,1fr) 84px 76px 84px 56px 110px 96px'
 
-const enRango = (p, v) => v >= RANGOS[p].min && v <= RANGOS[p].max
 
 const Lotes = () => {
   const [filas, setFilas] = useState(null)
   const [error, setError] = useState('')
   const [modal, setModal] = useState(false)
   const [guardando, setGuardando] = useState(false)
-  const [form, setForm] = useState({ fecha_inicio: hoy(), material_principal: '', peso_kg: '' })
+  const [form, setForm] = useState({
+    fecha_inicio: hoy(),
+    material_principal: '',
+    peso_kg: '',
+    duracion_estimada_dias: 120,
+  })
 
   const cargar = async () => {
     try {
@@ -24,10 +35,14 @@ const Lotes = () => {
       setFilas(
         lotes.map((l, i) => {
           const u = lecturas[i]
+          // El estado considera la fase: durante la maduración, enfriarse y
+          // secarse es lo esperado y no cuenta como advertencia.
           const params = u
-            ? ['temperatura', 'humedad', 'ph'].every((p) => enRango(p, Number(u[p])))
-              ? 'Óptimo'
-              : 'Advertencia'
+            ? ['temperatura', 'humedad', 'ph'].some((p) => requiereAlerta(p, Number(u[p]), l))
+              ? 'Advertencia'
+              : fase(l) === 'maduracion'
+                ? 'Maduración'
+                : 'Óptimo'
             : null
           return { ...l, ultima: u, param: params }
         }),
@@ -48,9 +63,18 @@ const Lotes = () => {
     setGuardando(true)
     setError('')
     try {
-      await crearLote({ ...form, peso_kg: parseFloat(form.peso_kg) })
+      await crearLote({
+        ...form,
+        peso_kg: parseFloat(form.peso_kg),
+        duracion_estimada_dias: parseInt(form.duracion_estimada_dias, 10),
+      })
       setModal(false)
-      setForm({ fecha_inicio: hoy(), material_principal: '', peso_kg: '' })
+      setForm({
+        fecha_inicio: hoy(),
+        material_principal: '',
+        peso_kg: '',
+        duracion_estimada_dias: 120,
+      })
       await cargar()
     } catch (err) {
       setError(err.response?.data?.detail || 'Error al crear el lote')
@@ -111,7 +135,13 @@ const Lotes = () => {
                     {l.estado === 'finalizado' ? (
                       <span className="cm-pill neutro">Finalizado</span>
                     ) : l.param ? (
-                      <span className={`cm-pill ${l.param === 'Óptimo' ? 'ok' : 'warn'}`}>{l.param}</span>
+                      <span
+                        className={`cm-pill ${
+                          l.param === 'Óptimo' ? 'ok' : l.param === 'Maduración' ? 'info' : 'warn'
+                        }`}
+                      >
+                        {l.param}
+                      </span>
                     ) : (
                       <span className="cm-pill info">Sin lecturas</span>
                     )}
@@ -171,6 +201,18 @@ const Lotes = () => {
                   placeholder="0.0"
                   value={form.peso_kg}
                   onChange={(e) => setForm({ ...form, peso_kg: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <div className="cm-label">Duración estimada del ciclo (días)</div>
+                <input
+                  className="cm-input"
+                  type="number"
+                  min="1"
+                  max="365"
+                  value={form.duracion_estimada_dias}
+                  onChange={(e) => setForm({ ...form, duracion_estimada_dias: e.target.value })}
                   required
                 />
               </div>

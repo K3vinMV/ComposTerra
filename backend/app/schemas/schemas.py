@@ -32,6 +32,8 @@ class LoteCreate(BaseModel):
     fecha_inicio: date
     material_principal: str = Field(max_length=100)
     peso_kg: Decimal = Field(gt=0)
+    # Duración esperada del ciclo; se usa para normalizar el tiempo en el modelo
+    duracion_estimada_dias: int = Field(default=120, ge=1, le=365)
 
 
 class LoteOut(BaseModel):
@@ -41,6 +43,7 @@ class LoteOut(BaseModel):
     fecha_inicio: date
     material_principal: str
     peso_kg: Decimal
+    duracion_estimada_dias: int
     estado: str
 
 
