@@ -16,3 +16,6 @@ ml/modelos/*.joblib
 .DS_Store
 .vscode/
 .idea/
+
+docs/
+PROJECT_CONTEXT.md

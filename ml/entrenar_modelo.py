@@ -20,7 +20,7 @@ DATASET = BASE / "dataset_composta.csv"
 MODELO_OUT = BASE / "modelos" / "modelo_composta.joblib"
 
 FEATURES = ["temperatura", "humedad", "ph"]
-CLASES = ["Alta", "Media", "Baja"]
+CLASES = ["optimo", "aceptable", "deficiente"]
 
 
 def main():

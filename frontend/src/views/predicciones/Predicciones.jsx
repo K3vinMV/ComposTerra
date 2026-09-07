@@ -3,8 +3,11 @@ import React, { useEffect, useState } from 'react'
 import { CSpinner } from '@coreui/react'
 import { getLotes, getPredicciones, crearPrediccion } from '../../api/composta'
 
-const CLASE_CALIDAD = { Alta: 'ok', Media: 'warn', Baja: 'bad' }
-const COLOR_BARRA = { Alta: '#A8D5B0', Media: '#E8C574', Baja: '#E5A98F' }
+// La API devuelve los valores en minúscula (ENUM de la BD); aquí se traducen a
+// la etiqueta visible, su estilo de badge y el color de la barra de confianza.
+const ETIQUETA = { optimo: 'Óptimo', aceptable: 'Aceptable', deficiente: 'Deficiente' }
+const CLASE_CALIDAD = { optimo: 'ok', aceptable: 'warn', deficiente: 'bad' }
+const COLOR_BARRA = { optimo: '#A8D5B0', aceptable: '#E8C574', deficiente: '#E5A98F' }
 
 const Predicciones = () => {
   const [lotes, setLotes] = useState([])
@@ -77,7 +80,7 @@ const Predicciones = () => {
                 className={`cm-pill ${CLASE_CALIDAD[ultima.resultado]}`}
                 style={{ padding: '9px 28px', borderRadius: 12, fontSize: 20, fontWeight: 600 }}
               >
-                {ultima.resultado}
+                {ETIQUETA[ultima.resultado] || ultima.resultado}
               </span>
             </div>
             <div style={{ marginTop: 18, textAlign: 'left' }}>
@@ -111,7 +114,9 @@ const Predicciones = () => {
           <div className="cm-tabla-fila" key={p.id} style={{ gridTemplateColumns: '1fr 130px 180px' }}>
             <span style={{ color: 'rgba(250,249,246,0.8)' }}>{new Date(p.fecha).toLocaleString('es-MX')}</span>
             <span>
-              <span className={`cm-pill ${CLASE_CALIDAD[p.resultado]}`}>{p.resultado}</span>
+              <span className={`cm-pill ${CLASE_CALIDAD[p.resultado]}`}>
+                {ETIQUETA[p.resultado] || p.resultado}
+              </span>
             </span>
             <span>
               <span className="cm-barra" style={{ display: 'block', height: 6 }}>

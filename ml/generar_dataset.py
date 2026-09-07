@@ -1,12 +1,12 @@
 """Genera el dataset simulado para entrenar el modelo de calidad de composta.
 
 Cada fila representa los promedios de un lote: temperatura, humedad, pH
-y su etiqueta de calidad (Alta / Media / Baja).
+y su etiqueta de calidad (optimo / aceptable / deficiente).
 
 Criterio de etiquetado (rangos óptimos: temp 45-65°C, hum 40-60%, pH 6-8):
-    Alta  → los 3 parámetros dentro del rango óptimo
-    Media → desviaciones leves (1-2 parámetros ligeramente fuera)
-    Baja  → desviaciones fuertes
+    optimo     → los 3 parámetros dentro del rango óptimo
+    aceptable  → desviaciones leves (1-2 parámetros ligeramente fuera)
+    deficiente → desviaciones fuertes
 
 Uso:
     python generar_dataset.py                # 200 filas → dataset_composta.csv
@@ -36,15 +36,17 @@ def _desviado(rango: tuple[float, float], leve: bool) -> float:
 
 
 def generar_fila() -> dict:
-    clase = random.choices(["Alta", "Media", "Baja"], weights=[0.4, 0.3, 0.3])[0]
+    clase = random.choices(
+        ["optimo", "aceptable", "deficiente"], weights=[0.4, 0.3, 0.3]
+    )[0]
     params = ["temperatura", "humedad", "ph"]
     fila = {p: _dentro(0, RANGOS[p]) for p in params}
 
-    if clase == "Media":
+    if clase == "aceptable":
         # 1 o 2 parámetros ligeramente fuera
         for p in random.sample(params, k=random.choice([1, 2])):
             fila[p] = _desviado(RANGOS[p], leve=True)
-    elif clase == "Baja":
+    elif clase == "deficiente":
         # 1 a 3 parámetros fuertemente fuera
         for p in random.sample(params, k=random.choice([1, 2, 3])):
             fila[p] = _desviado(RANGOS[p], leve=False)
@@ -81,7 +83,10 @@ def main():
         writer.writeheader()
         writer.writerows(filas)
 
-    conteo = {c: sum(1 for x in filas if x["calidad"] == c) for c in ["Alta", "Media", "Baja"]}
+    conteo = {
+        c: sum(1 for x in filas if x["calidad"] == c)
+        for c in ["optimo", "aceptable", "deficiente"]
+    }
     print(f"Dataset generado: {ruta} ({args.n} filas)")
     print(f"Distribución: {conteo}")
 
