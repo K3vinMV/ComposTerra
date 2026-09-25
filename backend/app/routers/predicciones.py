@@ -20,14 +20,18 @@ from app.core.deps import get_current_user
 from app.core.ml import predecir_estado
 from app.database import get_db
 from app.models import Lote, Prediccion, RegistroSensor, Usuario
-from app.schemas import PrediccionOut
+from app.schemas import PrediccionDetalleOut, PrediccionOut
 
 router = APIRouter(prefix="/predicciones", tags=["predicciones"])
 
 VENTANA_HORAS = 24
 
 
-@router.post("/{id_lote}", response_model=PrediccionOut, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/{id_lote}",
+    response_model=PrediccionDetalleOut,
+    status_code=status.HTTP_201_CREATED,
+)
 def crear_prediccion(
     id_lote: int,
     db: Session = Depends(get_db),
@@ -61,10 +65,9 @@ def crear_prediccion(
         )
 
     # --- 3. Clasificación ---
+    temperatura, humedad, ph = (float(promedios[i]) for i in range(3))
     try:
-        resultado, confianza = predecir_estado(
-            progreso, float(promedios[0]), float(promedios[1]), float(promedios[2])
-        )
+        resultado, confianza, votos = predecir_estado(progreso, temperatura, humedad, ph)
     except FileNotFoundError as e:
         raise HTTPException(status_code=503, detail=str(e))
 
@@ -76,4 +79,18 @@ def crear_prediccion(
     except Exception:
         db.rollback()
         raise
-    return prediccion
+
+    # La respuesta incluye el desglose de la votación y las entradas usadas,
+    # para que la interfaz pueda explicar cómo se llegó al resultado.
+    return PrediccionDetalleOut(
+        **PrediccionOut.model_validate(prediccion).model_dump(),
+        votos=votos,
+        entradas={
+            "progreso": round(progreso, 3),
+            "dias_transcurridos": dias_transcurridos,
+            "duracion_estimada_dias": duracion,
+            "temperatura": round(temperatura, 2),
+            "humedad": round(humedad, 2),
+            "ph": round(ph, 2),
+        },
+    )

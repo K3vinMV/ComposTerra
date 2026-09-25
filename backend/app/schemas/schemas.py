@@ -76,3 +76,14 @@ class PrediccionOut(BaseModel):
     resultado: Literal["optimo", "aceptable", "deficiente"]
     confianza: Decimal
     fecha: datetime
+
+
+class PrediccionDetalleOut(PrediccionOut):
+    """Predicción recién generada, con el desglose de la votación del ensamble.
+
+    Solo se devuelve al crear la predicción: el historial no guarda los votos,
+    porque son reconstruibles ejecutando el modelo con las mismas entradas.
+    """
+
+    votos: dict | None = None
+    entradas: dict | None = None

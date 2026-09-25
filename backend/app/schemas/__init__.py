@@ -2,6 +2,7 @@ from app.schemas.schemas import (
     LoginRequest,
     LoteCreate,
     LoteOut,
+    PrediccionDetalleOut,
     PrediccionOut,
     RegistroCreate,
     RegistroOut,
@@ -18,4 +19,5 @@ __all__ = [
     "RegistroCreate",
     "RegistroOut",
     "PrediccionOut",
+    "PrediccionDetalleOut",
 ]

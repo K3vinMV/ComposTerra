@@ -39,9 +39,20 @@ def _cargar_bundle() -> dict:
     return bundle
 
 
+def obtener_metricas() -> dict:
+    """Métricas del modelo en producción, generadas durante el entrenamiento."""
+    bundle = _cargar_bundle()
+    metricas = bundle.get("metricas")
+    if metricas is None:
+        raise FileNotFoundError(
+            "El modelo no incluye métricas. Reentrena con: python ml/entrenar_modelo.py"
+        )
+    return metricas
+
+
 def predecir_estado(
     progreso: float, temperatura: float, humedad: float, ph: float
-) -> tuple[str, float]:
+) -> tuple[str, float, dict]:
     """Clasifica el estado del proceso de un lote.
 
     Args:
@@ -51,8 +62,11 @@ def predecir_estado(
         ph: promedio reciente.
 
     Returns:
-        (resultado, confianza) donde resultado es optimo | aceptable | deficiente
-        y confianza es el porcentaje de árboles que votaron por esa clase.
+        (resultado, confianza, votos) donde `resultado` es la clase más votada,
+        `confianza` el porcentaje de árboles que la eligieron, y `votos` el
+        desglose completo del ensamble: cuántos árboles votaron por cada clase.
+        El desglose permite mostrar de dónde sale la confianza en lugar de
+        presentarla como un número sin origen.
     """
     bundle = _cargar_bundle()
     modelo = bundle["modelo"]
@@ -66,6 +80,16 @@ def predecir_estado(
     }
     X = pd.DataFrame([[valores[f] for f in features]], columns=features)
 
+    proporciones = modelo.predict_proba(X)[0]
+    n_arboles = len(modelo.estimators_)
+    votos = {
+        str(clase): {
+            "proporcion": round(float(p) * 100, 2),
+            "arboles": int(round(float(p) * n_arboles)),
+        }
+        for clase, p in zip(modelo.classes_, proporciones)
+    }
+
     resultado = str(modelo.predict(X)[0])
-    confianza = float(max(modelo.predict_proba(X)[0]) * 100)
-    return resultado, round(confianza, 2)
+    confianza = float(max(proporciones) * 100)
+    return resultado, round(confianza, 2), {"total_arboles": n_arboles, "por_clase": votos}

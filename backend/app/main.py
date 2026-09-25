@@ -28,12 +28,13 @@ def health():
 
 
 # Routers
-from app.routers import auth, lotes, predicciones, registros  # noqa: E402
+from app.routers import auth, lotes, modelo, predicciones, registros  # noqa: E402
 
 app.include_router(auth.router)
 app.include_router(lotes.router)
 app.include_router(registros.router)
 app.include_router(predicciones.router)
+app.include_router(modelo.router)
 
 
 # Handler para AWS Lambda (migración futura — no afecta ejecución local)
