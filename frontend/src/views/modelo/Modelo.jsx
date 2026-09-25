@@ -1,9 +1,5 @@
 /**
- * Vista Modelo — hace visible el clasificador Random Forest.
- *
- * Todas las cifras se leen del endpoint /modelo/info, que las obtiene del
- * archivo del modelo entrenado. Ninguna está escrita en este componente: lo
- * que se muestra es el desempeño del modelo que está clasificando en producción.
+ * Vista Modelo
  */
 import React, { useEffect, useState } from 'react'
 import { CSpinner } from '@coreui/react'

@@ -5,10 +5,6 @@ Flujo:
     2. Promedia las lecturas recientes del sensor (ventana de 24 h).
     3. Clasifica con el Random Forest y persiste el resultado.
 
-Por qué una ventana reciente y no todo el historial: el modelo estima el estado
-del proceso en un punto del ciclo, así que las lecturas deben corresponder a ese
-mismo momento. Promediar semanas de historia mezclaría fases distintas del
-proceso y contradiría el significado de la variable `progreso`.
 """
 from datetime import datetime, timedelta
 

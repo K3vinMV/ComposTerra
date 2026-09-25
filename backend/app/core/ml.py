@@ -1,12 +1,5 @@
 """Servicio de clasificación del estado del proceso de compostaje.
 
-Carga el modelo Random Forest entrenado y expone una función de predicción.
-El modelo se carga una sola vez por proceso (lazy + cache) y se reutiliza en
-cada petición.
-
-El archivo .joblib contiene un diccionario con el modelo y sus metadatos, para
-que el backend no tenga que asumir el orden de las variables ni las clases:
-
     {"modelo": ..., "features": [...], "clases": [...], ...}
 """
 from functools import lru_cache

@@ -3,47 +3,11 @@
 ENTRADA   dataset_composta.csv  (generado por preparar_dataset.py)
 SALIDA    modelos/modelo_composta.joblib
 
-DECISIONES METODOLÓGICAS
-------------------------
-1. Partición POR LOTE, no aleatoria.
-   Las muestras de un mismo lote son una serie temporal correlacionada. Si el
-   día 12 de un lote quedara en entrenamiento y el día 15 del mismo lote en
-   prueba, habría fuga de información y el resultado saldría inflado.
-   `GroupShuffleSplit` garantiza que ningún lote aparezca en ambos conjuntos.
-
-2. Evaluación sobre múltiples particiones.
-   Una sola partición con 63 lotes es sensible al azar. Se promedian N
-   particiones distintas y se reporta la desviación estándar.
-
-3. Dos comparaciones independientes, para justificar por separado el algoritmo
-   y el conjunto de variables:
-
-   A. Algoritmo (variables fijas). Se contrasta contra dos reglas sin
-      aprendizaje y dos modelos entrenados más simples. Se incluyen DOS reglas
-      a propósito: la operativa, que es la que usa hoy la planta, y una
-      heurística construida específicamente para madurez. Comparar solo contra
-      la primera sería un baseline mal planteado, porque responde una pregunta
-      distinta ("¿opera bien?" en vez de "¿está madura?").
-
-   B. Variables (algoritmo fijo). Verifica que ni el tiempo ni los sensores
-      bastan por separado, y que el aporte real está en la combinación.
-
-   El argumento defendible es el margen sobre los modelos entrenados
-   (regresión logística y árbol simple), no sobre las reglas.
-
 MODELO MATEMÁTICO
 -----------------
-Random Forest: ensamble de B árboles de decisión. Cada árbol se entrena sobre
-una muestra bootstrap y en cada nodo evalúa un subconjunto aleatorio de
-variables, eligiendo la división que minimiza la impureza de Gini:
 
     G(t) = 1 - Σ p(c|t)²        sobre las clases c del nodo t
 
-La predicción final es el voto mayoritario de los B árboles, y la confianza
-reportada es la proporción de árboles que votaron por la clase ganadora.
-
-Uso:
-    python entrenar_modelo.py
 """
 import sys
 from datetime import datetime

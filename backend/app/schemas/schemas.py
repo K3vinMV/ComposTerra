@@ -80,9 +80,6 @@ class PrediccionOut(BaseModel):
 
 class PrediccionDetalleOut(PrediccionOut):
     """Predicción recién generada, con el desglose de la votación del ensamble.
-
-    Solo se devuelve al crear la predicción: el historial no guarda los votos,
-    porque son reconstruibles ejecutando el modelo con las mismas entradas.
     """
 
     votos: dict | None = None

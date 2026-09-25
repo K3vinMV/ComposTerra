@@ -1,8 +1,5 @@
 """GET /modelo/info — expone las métricas del modelo en producción.
 
-Las métricas no están escritas en el código: se generan durante el
-entrenamiento y viajan dentro del archivo .joblib. Lo que muestra la
-aplicación es, literalmente, el desempeño del modelo que está clasificando.
 """
 from fastapi import APIRouter, Depends, HTTPException
 
