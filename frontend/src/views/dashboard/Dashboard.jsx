@@ -1,5 +1,5 @@
 /**
- * Dashboard glass — diseño Composta Monitor con datos reales:
+ * Dashboard glass — diseño ComposTerra con datos reales:
  * KPIs (lotes activos + 3 métricas en vivo), gráfica histórica,
  * anillo de estado y alertas. Poll cada 5 s.
  */

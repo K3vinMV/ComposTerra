@@ -1,11 +1,11 @@
 {
-  "short_name": "CoreUI-React",
-  "name": "CoreUI-React sample",
+  "short_name": "ComposTerra",
+  "name": "ComposTerra",
   "icons": [
     {
-      "src": "./assets/img/favicon.png",
-      "sizes": "100x100",
-      "type": "image/png"
+      "src": "/logo.png",
+      "type": "image/png",
+      "sizes": "1242x1242"
     }
   ],
   "start_url": ".",

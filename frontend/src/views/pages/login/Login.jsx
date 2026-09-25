@@ -1,9 +1,8 @@
-/** Login glass — diseño Composta Monitor. */
+/** Login glass — diseño ComposTerra. */
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CSpinner } from '@coreui/react'
 import { login } from '../../../api/composta'
-import { IconoHoja } from '../../../components/icons'
 
 const Login = () => {
   const navigate = useNavigate()
@@ -55,10 +54,12 @@ const Login = () => {
             boxShadow: '0 16px 48px rgba(0,0,0,0.35)',
           }}
         >
-          <div className="cm-logo" style={{ width: 56, height: 56, marginBottom: 14 }}>
-            <IconoHoja size={26} color="#FAF9F6" />
-          </div>
-          <div style={{ fontSize: 20, fontWeight: 600 }}>Composta Monitor</div>
+          <img
+            src="/logo.png"
+            alt="ComposTerra"
+            style={{ width: 92, height: 'auto', marginBottom: 12 }}
+          />
+          <div style={{ fontSize: 20, fontWeight: 600 }}>ComposTerra</div>
           <div style={{ fontSize: 13, color: 'rgba(250,249,246,0.6)', marginTop: 4, marginBottom: 26 }}>
             Sistema de monitoreo de composta
           </div>
