@@ -62,3 +62,6 @@ export const getPredicciones = async (idLote) =>
 
 export const crearPrediccion = async (idLote) =>
   (await client.post(`/predicciones/${idLote}`)).data
+
+/** Métricas del modelo en producción, generadas durante el entrenamiento. */
+export const getInfoModelo = async () => (await client.get('/modelo/info')).data

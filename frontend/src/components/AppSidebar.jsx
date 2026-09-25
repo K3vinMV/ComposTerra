@@ -1,12 +1,19 @@
-/** Sidebar glass del diseño Composta Monitor. */
+/** Sidebar glass del diseño ComposTerra. */
 import React from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
-import { IconoHoja, IconoDashboard, IconoLotes, IconoPredicciones, IconoSalir } from './icons'
+import {
+  IconoDashboard,
+  IconoLotes,
+  IconoPredicciones,
+  IconoModelo,
+  IconoSalir,
+} from './icons'
 
 const NAV = [
   { to: '/dashboard', nombre: 'Dashboard', Icono: IconoDashboard },
   { to: '/lotes', nombre: 'Lotes', Icono: IconoLotes },
   { to: '/predicciones', nombre: 'Predicciones', Icono: IconoPredicciones },
+  { to: '/modelo', nombre: 'Modelo', Icono: IconoModelo },
 ]
 
 const AppSidebar = () => {
@@ -28,14 +35,8 @@ const AppSidebar = () => {
   return (
     <aside className="cm-sidebar">
       <div className="cm-brand">
-        <div className="cm-logo">
-          <IconoHoja size={19} color="#FAF9F6" />
-        </div>
-        <div>
-          Composta
-          <br />
-          Monitor
-        </div>
+        <img src="/logo.png" alt="" style={{ width: 42, height: 'auto', flexShrink: 0 }} />
+        <div>ComposTerra</div>
       </div>
 
       <nav className="cm-nav">

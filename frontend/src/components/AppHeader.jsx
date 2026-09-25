@@ -6,7 +6,8 @@ import { IconoCalendario, IconoReloj } from './icons'
 const TITULOS = {
   '/dashboard': ['Resumen general del sistema'],
   '/lotes': ['Lotes', 'Historial y gestión de lotes de composta'],
-  '/predicciones': ['Predicciones', 'Calidad estimada con Random Forest'],
+  '/predicciones': ['Predicciones', 'Estado del proceso estimado con Random Forest'],
+  '/modelo': ['Modelo', ''],
 }
 
 const AppHeader = () => {

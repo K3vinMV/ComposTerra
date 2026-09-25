@@ -92,6 +92,81 @@ const Predicciones = () => {
                 <div style={{ width: `${Number(ultima.confianza)}%`, background: COLOR_BARRA[ultima.resultado] }} />
               </div>
             </div>
+
+            {/* De dónde sale esa confianza: la votación del ensamble */}
+            {ultima.votos && (
+              <div style={{ marginTop: 22, textAlign: 'left' }}>
+                <div style={{ fontSize: 12.5, fontWeight: 600, marginBottom: 3 }}>
+                  Votación del ensamble
+                </div>
+                <div style={{ fontSize: 11.5, color: 'rgba(250,249,246,0.55)', marginBottom: 10 }}>
+                  Cómo votaron los {ultima.votos.total_arboles} árboles
+                </div>
+                {Object.entries(ultima.votos.por_clase)
+                  .sort((a, b) => b[1].arboles - a[1].arboles)
+                  .map(([clase, v]) => (
+                    <div key={clase} style={{ marginBottom: 9 }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          fontSize: 11.5,
+                          marginBottom: 4,
+                          color:
+                            clase === ultima.resultado
+                              ? 'var(--crema)'
+                              : 'rgba(250,249,246,0.6)',
+                        }}
+                      >
+                        <span>{ETIQUETA[clase] || clase}</span>
+                        <span>
+                          {v.arboles} de {ultima.votos.total_arboles}
+                        </span>
+                      </div>
+                      <span className="cm-barra" style={{ display: 'block', height: 5 }}>
+                        <div
+                          style={{
+                            width: `${v.proporcion}%`,
+                            background:
+                              clase === ultima.resultado
+                                ? COLOR_BARRA[clase]
+                                : 'rgba(250,249,246,0.25)',
+                          }}
+                        />
+                      </span>
+                    </div>
+                  ))}
+              </div>
+            )}
+
+            {/* Entradas exactas que recibió el modelo */}
+            {ultima.entradas && (
+              <div
+                style={{
+                  marginTop: 18,
+                  paddingTop: 14,
+                  borderTop: '1px solid rgba(255,255,255,0.1)',
+                  textAlign: 'left',
+                  fontSize: 11.5,
+                  color: 'rgba(250,249,246,0.55)',
+                  lineHeight: 1.6,
+                }}
+              >
+                <div style={{ fontWeight: 600, color: 'rgba(250,249,246,0.8)', marginBottom: 5 }}>
+                  Entradas del modelo
+                </div>
+                Avance del ciclo {(ultima.entradas.progreso * 100).toFixed(0)}% (día{' '}
+                {ultima.entradas.dias_transcurridos} de{' '}
+                {ultima.entradas.duracion_estimada_dias})
+                <br />
+                {ultima.entradas.temperatura} °C · {ultima.entradas.humedad} % ·
+                pH {ultima.entradas.ph}
+                <br />
+                <span style={{ color: 'rgba(250,249,246,0.4)' }}>
+                  Promedio de las lecturas de las últimas 24 h
+                </span>
+              </div>
+            )}
           </div>
         )}
       </div>

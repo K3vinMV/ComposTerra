@@ -1,4 +1,4 @@
-/** Iconos SVG del diseño Composta Monitor (trazos del archivo .dc.html). */
+/** Iconos SVG del diseño ComposTerra (trazos del archivo .dc.html). */
 import React from 'react'
 
 const Icono = ({ d, size = 18, color = 'currentColor', ...props }) => (
@@ -16,6 +16,9 @@ export const IconoHoja = (p) => (
 export const IconoDashboard = (p) => <Icono d="M3 11 L12 4 L21 11 M5 9.5 V20 H19 V9.5" {...p} />
 export const IconoLotes = (p) => <Icono d="M4 5 H20 M4 10 H20 M4 15 H20 M4 20 H12" {...p} />
 export const IconoPredicciones = (p) => <Icono d="M4 17 L10 11 L14 14 L20 7 M15 7 H20 V12" {...p} />
+export const IconoModelo = (p) => (
+  <Icono d="M12 3 L12 8 M12 8 L7 12 M12 8 L17 12 M7 12 L7 17 M17 12 L17 17 M5 19 a2 2 0 1 0 4 0 a2 2 0 1 0 -4 0 M15 19 a2 2 0 1 0 4 0 a2 2 0 1 0 -4 0 M10 3 a2 2 0 1 0 4 0 a2 2 0 1 0 -4 0" {...p} />
+)
 export const IconoSalir = (p) => <Icono d="M10 4 H19 V20 H10 M14 12 H3 M6 9 L3 12 L6 15" {...p} />
 export const IconoCalendario = (p) => <Icono d="M5 6 H19 V20 H5 Z M5 10 H19 M9 3 V7 M15 3 V7" {...p} />
 export const IconoReloj = (p) => <Icono d="M12 4 a8 8 0 1 0 0.01 0 M12 8 V12 L15 14" {...p} />
