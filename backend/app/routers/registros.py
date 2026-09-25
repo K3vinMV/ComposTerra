@@ -1,6 +1,5 @@
 """POST /registros — ingesta de lecturas del sensor (simulador).
 
-Local: el simulador llama este endpoint vía HTTP cada 5 s.
 AWS:   se reemplaza por MQTT → IoT Core → Lambda que inserta directo
        en RDS; este endpoint puede conservarse para pruebas.
 """
@@ -34,7 +33,11 @@ def crear_registro(
         )
 
     registro = RegistroSensor(**datos.model_dump())
-    db.add(registro)
-    db.commit()
-    db.refresh(registro)
+    try:
+        db.add(registro)
+        db.commit()
+        db.refresh(registro)
+    except Exception:
+        db.rollback()
+        raise
     return registro

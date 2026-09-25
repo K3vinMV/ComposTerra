@@ -35,9 +35,13 @@ def crear_lote(
     _: Usuario = Depends(get_current_user),
 ):
     lote = Lote(**datos.model_dump())
-    db.add(lote)
-    db.commit()
-    db.refresh(lote)
+    try:
+        db.add(lote)
+        db.commit()
+        db.refresh(lote)
+    except Exception:
+        db.rollback()
+        raise
     return lote
 
 
@@ -50,8 +54,12 @@ def cambiar_estado(
 ):
     lote = _obtener_lote(db, id_lote)
     lote.estado = estado
-    db.commit()
-    db.refresh(lote)
+    try:
+        db.commit()
+        db.refresh(lote)
+    except Exception:
+        db.rollback()
+        raise
     return lote
 
 

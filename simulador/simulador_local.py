@@ -1,15 +1,5 @@
 """Simulador de sensor de composta — versión local (HTTP).
 
-Envía lecturas de temperatura, humedad y pH cada 5 s a la API REST.
-Los valores derivan gradualmente (random walk) para verse realistas
-en la gráfica del dashboard.
-
-Uso:
-    python simulador_local.py --lote 1
-    python simulador_local.py --lote 2 --escenario maduro
-    python simulador_local.py --lote 3 --escenario seco
-    python simulador_local.py --lote 1 --intervalo 2
-
 Escenarios:
     termofilico → fase activa: caliente y húmedo, dentro de rango (default)
     maduro      → fase final: frío y seco, composta lista
@@ -17,25 +7,18 @@ Escenarios:
     frio        → temperatura por debajo del rango (dispara alerta)
     acido       → pH por debajo del rango (dispara alerta)
 
-Nota sobre las fases: los rangos considerados óptimos (45-65 °C, 40-60 % de
-humedad) describen la fase termofílica, cuando la actividad microbiana está en
-su punto máximo. Una composta MADURA es lo contrario: fría y seca, porque la
-actividad ya cesó. Por eso `maduro` sale del rango "óptimo" a propósito — y el
-modelo lo clasifica correctamente cuando el lote está avanzado en su ciclo.
-
-Migración a AWS: la función `enviar_lectura` se reemplaza por
-`client.publish(...)` de paho-mqtt hacia AWS IoT Core. La generación
-de datos (`SensorComposta`) no cambia.
 """
 import argparse
+import os
 import random
 import time
 
 import requests
 
-API_URL = "http://localhost:8000"
-EMAIL = "admin@composta.com"
-PASSWORD = "admin123"
+#   Credenciales de usuario administrador para autenticación en la API
+API_URL = os.getenv("COMPOSTERRA_API", "http://localhost:8000")
+EMAIL = os.getenv("COMPOSTERRA_EMAIL", "admin@composterra.mx")
+PASSWORD = os.getenv("COMPOSTERRA_PASSWORD")
 INTERVALO_DEFAULT = 5  # segundos
 
 # (valor inicial, mínimo, máximo, deriva máxima por lectura)
@@ -53,8 +36,6 @@ ESCENARIO_DEFAULT = "termofilico"
 
 
 # Ruido de medición: desviación estándar del error de cada sensor.
-# Valores tomados de las hojas de datos de sensores comerciales de bajo costo,
-# que es el hardware al que apunta el proyecto:
 #   DS18B20 (temperatura de sonda)  ±0.5 °C
 #   Sensor capacitivo de humedad    ±2 %
 #   Sonda de pH analógica           ±0.1
@@ -62,19 +43,6 @@ RUIDO = {"temp": 0.5, "hum": 2.0, "ph": 0.1}
 
 
 class SensorComposta:
-    """Genera lecturas realistas combinando dos fuentes de variación.
-
-    1. Deriva (random walk): el valor real del proceso cambia poco a poco.
-       Modela que la composta se calienta o se seca de forma gradual.
-    2. Ruido de medición: error instantáneo del sensor alrededor del valor
-       real, con distribución normal. Modela la precisión limitada del
-       hardware.
-
-    La distinción importa: la deriva se acumula (el estado del proceso
-    persiste), el ruido no (cada medición yerra de forma independiente).
-    Por eso el estado interno guarda el valor sin ruido y este se agrega
-    solo al momento de reportar la lectura.
-    """
 
     def __init__(self, escenario: str):
         cfg = ESCENARIOS[escenario]
@@ -133,6 +101,11 @@ def main():
     parser.add_argument("--escenario", choices=ESCENARIOS, default=ESCENARIO_DEFAULT)
     parser.add_argument("--intervalo", type=float, default=INTERVALO_DEFAULT)
     args = parser.parse_args()
+
+    global PASSWORD
+    if not PASSWORD:
+        import getpass
+        PASSWORD = getpass.getpass(f"Contraseña de {EMAIL}: ")
 
     print(f"Autenticando en {API_URL} ...")
     token = obtener_token()

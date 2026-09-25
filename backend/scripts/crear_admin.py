@@ -1,8 +1,8 @@
 """Crea el usuario administrador inicial.
-
-Uso (desde backend/, con venv activo y .env configurado):
-    python scripts/crear_admin.py
 """
+import argparse
+import os
+import secrets
 import sys
 from pathlib import Path
 
@@ -13,25 +13,67 @@ from sqlalchemy import text
 from app.core.security import hash_password
 from app.database import SessionLocal
 
-EMAIL = "admin@composta.com"
-PASSWORD = "admin123"  # cambiar después del primer login
+EMAIL = os.getenv("ADMIN_EMAIL", "admin@composterra.mx")
+NOMBRE = os.getenv("ADMIN_NOMBRE", "Administrador")
 
-db = SessionLocal()
-existe = db.execute(
-    text("SELECT id FROM usuarios WHERE email = :e"), {"e": EMAIL}
-).fetchone()
 
-if existe:
-    print(f"El usuario {EMAIL} ya existe (id={existe[0]}).")
-else:
-    db.execute(
-        text(
-            "INSERT INTO usuarios (nombre, email, password_hash, rol) "
-            "VALUES (:n, :e, :p, 'admin')"
-        ),
-        {"n": "Administrador", "e": EMAIL, "p": hash_password(PASSWORD)},
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--reiniciar",
+        action="store_true",
+        help="cambia la contraseña si el usuario ya existe",
     )
-    db.commit()
-    print(f"Usuario creado → {EMAIL} / {PASSWORD}")
+    args = parser.parse_args()
 
-db.close()
+    password = os.getenv("ADMIN_PASSWORD")
+    generada = password is None
+    if generada:
+        # 16 bytes en base64 -> ~22 caracteres imprevisibles
+        password = secrets.token_urlsafe(16)
+
+    db = SessionLocal()
+    try:
+        existe = db.execute(
+            text("SELECT id FROM usuarios WHERE email = :e"), {"e": EMAIL}
+        ).fetchone()
+
+        if existe and not args.reiniciar:
+            print(f"El usuario {EMAIL} ya existe (id={existe[0]}).")
+            print("Usa --reiniciar si quieres cambiarle la contraseña.")
+            return
+
+        if existe:
+            db.execute(
+                text("UPDATE usuarios SET password_hash = :p WHERE email = :e"),
+                {"p": hash_password(password), "e": EMAIL},
+            )
+            accion = "Contraseña actualizada"
+        else:
+            db.execute(
+                text(
+                    "INSERT INTO usuarios (nombre, email, password_hash, rol) "
+                    "VALUES (:n, :e, :p, 'admin')"
+                ),
+                {"n": NOMBRE, "e": EMAIL, "p": hash_password(password)},
+            )
+            accion = "Usuario creado"
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
+
+    print(f"\n{accion}")
+    print(f"  Correo:     {EMAIL}")
+    if generada:
+        print(f"  Contraseña: {password}")
+        print("\n  Guárdala ahora: no vuelve a mostrarse y no queda registrada.")
+    else:
+        print("  Contraseña: la definida en ADMIN_PASSWORD")
+    print()
+
+
+if __name__ == "__main__":
+    main()
