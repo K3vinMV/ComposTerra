@@ -6,7 +6,17 @@ import secrets
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+RAIZ = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(RAIZ))
+
+# Carga el .env para que ADMIN_EMAIL y ADMIN_PASSWORD puedan definirse ahí
+# igual que el resto de la configuración, y no solo como variables de shell.
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv(RAIZ / ".env")
+except ImportError:  # pragma: no cover
+    pass
 
 from sqlalchemy import text
 
