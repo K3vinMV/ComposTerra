@@ -82,36 +82,78 @@ def crear_cliente() -> mqtt.Client:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Simulador de sensor por MQTT")
-    parser.add_argument("--lote", type=int, required=True, help="ID del lote")
+    parser = argparse.ArgumentParser(
+        description="Simulador de sensores por MQTT",
+        epilog=(
+            "Ejemplos:\n"
+            "  Un lote:          --sensor 3:maduro\n"
+            "  Varios a la vez:  --sensor 1:termofilico --sensor 2:seco --sensor 3:maduro\n"
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument(
+        "--sensor",
+        action="append",
+        metavar="LOTE:ESCENARIO",
+        help="lote y escenario a simular; repetible para instrumentar varios lotes",
+    )
+    parser.add_argument("--lote", type=int, help="atajo para un solo lote")
     parser.add_argument("--escenario", choices=ESCENARIOS, default=ESCENARIO_DEFAULT)
     parser.add_argument("--intervalo", type=float, default=INTERVALO_DEFAULT)
     args = parser.parse_args()
 
-    topico = f"composterra/sensores/{args.lote}"
-    cliente = crear_cliente()
+    # Cada entrada de --sensor produce una instancia independiente de
+    # SensorComposta: los lotes evolucionan por separado, igual que lo harían
+    # pilas distintas con su propio sensor.
+    sensores = {}
+    if args.sensor:
+        for entrada in args.sensor:
+            if ":" in entrada:
+                lote_txt, escenario = entrada.split(":", 1)
+            else:
+                lote_txt, escenario = entrada, ESCENARIO_DEFAULT
+            escenario = escenario.strip()
+            if escenario not in ESCENARIOS:
+                sys.exit(
+                    f"Escenario desconocido: '{escenario}'. "
+                    f"Opciones: {', '.join(ESCENARIOS)}"
+                )
+            sensores[int(lote_txt)] = (escenario, SensorComposta(escenario))
+    elif args.lote is not None:
+        sensores[args.lote] = (args.escenario, SensorComposta(args.escenario))
+    else:
+        sys.exit("Indica al menos un sensor con --sensor LOTE:ESCENARIO (o --lote N)")
 
+    cliente = crear_cliente()
     print(f"Conectando a {IOT_ENDPOINT} ...")
     cliente.connect(IOT_ENDPOINT, PUERTO_MQTT, keepalive=60)
     # loop_start mantiene la conexión viva en segundo plano y reconecta solo
     # si se cae, sin que el bucle principal tenga que ocuparse.
     cliente.loop_start()
 
-    sensor = SensorComposta(args.escenario)
-    print(f"Publicando en {topico} | escenario '{args.escenario}' | cada {args.intervalo}s")
-    print("Ctrl+C para detener.\n")
+    print(f"\nSensores activos (publicando cada {args.intervalo}s):")
+    for lote, (escenario, _) in sorted(sensores.items()):
+        print(f"  lote {lote}  →  composterra/sensores/{lote}  [{escenario}]")
+    print("\nCtrl+C para detener.\n")
 
     try:
         while True:
-            lectura = sensor.leer()
-            mensaje = {"id_lote": args.lote, **lectura}
-            resultado = cliente.publish(topico, json.dumps(mensaje), qos=1)
-            estado = "OK" if resultado.rc == mqtt.MQTT_ERR_SUCCESS else f"ERROR {resultado.rc}"
-            print(
-                f"T={lectura['temperatura']:6.2f}°C  "
-                f"H={lectura['humedad']:6.2f}%  "
-                f"pH={lectura['ph']:5.2f}  → {estado}"
-            )
+            for lote, (_, sensor) in sorted(sensores.items()):
+                lectura = sensor.leer()
+                mensaje = {"id_lote": lote, **lectura}
+                resultado = cliente.publish(
+                    f"composterra/sensores/{lote}", json.dumps(mensaje), qos=1
+                )
+                estado = (
+                    "OK" if resultado.rc == mqtt.MQTT_ERR_SUCCESS else f"ERROR {resultado.rc}"
+                )
+                print(
+                    f"lote {lote}  "
+                    f"T={lectura['temperatura']:6.2f}°C  "
+                    f"H={lectura['humedad']:6.2f}%  "
+                    f"pH={lectura['ph']:5.2f}  → {estado}"
+                )
+            print()
             time.sleep(args.intervalo)
     except KeyboardInterrupt:
         print("\nDeteniendo...")

@@ -19,3 +19,6 @@ ml/modelos/*.joblib
 
 docs/
 PROJECT_CONTEXT.md
+
+simulador/certs/
+lambda_iot/*.zip

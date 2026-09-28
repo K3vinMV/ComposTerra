@@ -8,7 +8,15 @@ from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
 from app.config import settings
 
-engine = create_engine(settings.database_url, pool_pre_ping=True, pool_recycle=3600)
+engine = create_engine(
+    settings.database_url,
+    pool_pre_ping=True,
+    pool_recycle=3600,
+    # Todas las marcas de tiempo se guardan en UTC, sin importar la zona del
+    # servidor. Así la base es la misma en la máquina de desarrollo y en RDS,
+    # y cada cliente muestra las horas en su propia zona horaria.
+    connect_args={"init_command": "SET time_zone = '+00:00'"},
+)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 

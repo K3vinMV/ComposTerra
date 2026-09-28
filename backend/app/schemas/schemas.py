@@ -1,9 +1,9 @@
 """Schemas Pydantic — validación de entrada y formato de salida de la API."""
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from decimal import Decimal
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_serializer
 
 
 # ------------------------------- Auth --------------------------------
@@ -56,6 +56,18 @@ class RegistroCreate(BaseModel):
     ph: Decimal = Field(ge=0, le=14)
 
 
+def _como_utc(valor: datetime) -> datetime:
+    """Marca como UTC las fechas que vienen sin zona horaria.
+
+    La base guarda todo en UTC, pero MySQL devuelve datetimes "ingenuos", sin
+    indicar a qué zona pertenecen. Al serializarlos así, el navegador los
+    interpretaría como hora local y mostraría un desfase.
+
+    Declarando la zona explícitamente, cada cliente convierte a la suya.
+    """
+    return valor if valor.tzinfo else valor.replace(tzinfo=timezone.utc)
+
+
 class RegistroOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -65,6 +77,10 @@ class RegistroOut(BaseModel):
     humedad: Decimal
     ph: Decimal
     timestamp: datetime
+
+    @field_serializer("timestamp")
+    def _serializar_timestamp(self, valor: datetime) -> datetime:
+        return _como_utc(valor)
 
 
 # ----------------------------- Predicciones --------------------------
@@ -76,6 +92,10 @@ class PrediccionOut(BaseModel):
     resultado: Literal["optimo", "aceptable", "deficiente"]
     confianza: Decimal
     fecha: datetime
+
+    @field_serializer("fecha")
+    def _serializar_fecha(self, valor: datetime) -> datetime:
+        return _como_utc(valor)
 
 
 class PrediccionDetalleOut(PrediccionOut):
