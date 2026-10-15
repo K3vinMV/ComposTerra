@@ -1,4 +1,5 @@
 from app.schemas.schemas import (
+    AlertaOut,
     LoginRequest,
     LoteCreate,
     LoteOut,
@@ -11,6 +12,7 @@ from app.schemas.schemas import (
 )
 
 __all__ = [
+    "AlertaOut",
     "LoginRequest",
     "TokenResponse",
     "UsuarioOut",

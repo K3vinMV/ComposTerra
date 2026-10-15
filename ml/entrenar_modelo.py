@@ -1,14 +1,3 @@
-"""Entrena y evalúa el clasificador de estado del proceso de compostaje.
-
-ENTRADA   dataset_composta.csv  (generado por preparar_dataset.py)
-SALIDA    modelos/modelo_composta.joblib
-
-MODELO MATEMÁTICO
------------------
-
-    G(t) = 1 - Σ p(c|t)²        sobre las clases c del nodo t
-
-"""
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -35,37 +24,25 @@ N_PARTICIONES = 20
 TEST_SIZE = 0.25
 SEMILLA = 42
 
-# Rangos óptimos de referencia del proceso (usados por el baseline y por las
-# alertas del sistema). Deben coincidir con RANGOS en el frontend.
+# Rangos óptimos de referencia del proceso 
 RANGOS = {"temperatura": (45, 65), "humedad": (40, 60), "ph": (6, 8)}
 
 
 def nuevo_modelo() -> RandomForestClassifier:
     return RandomForestClassifier(
-        n_estimators=300,          # ensamble amplio: estabiliza sin costo relevante
-        max_depth=8,               # limita profundidad para evitar sobreajuste
+        n_estimators=300,          
+        max_depth=8,               
         random_state=SEMILLA,
-        class_weight="balanced",   # compensa el desbalance entre clases
+        class_weight="balanced",   
     )
 
 
 def regla_operativa(fila) -> str:
-    """Regla que usa hoy la planta: todo dentro de rango = proceso correcto.
-
-    Es la práctica actual contra la que compite el sistema. Su límite es que
-    responde "¿la pila opera bien ahora?", no "¿qué tan madura está?".
-    """
     dentro = sum(RANGOS[p][0] <= fila[p] <= RANGOS[p][1] for p in RANGOS)
     return {3: "optimo", 2: "aceptable"}.get(dentro, "deficiente")
 
 
 def regla_madurez(fila) -> str:
-    """Heurística de dominio orientada a madurez: composta madura = fría y seca.
-
-    Se incluye para que la comparación sea justa: a diferencia de la regla
-    operativa, esta sí fue construida para predecir madurez. Descarta la
-    objeción de estar midiendo contra un baseline mal planteado.
-    """
     señales = sum(
         [fila["temperatura"] < 35, fila["humedad"] < 35, 6.5 <= fila["ph"] <= 8.5]
     )
@@ -83,12 +60,6 @@ def _resumen(acumulado: dict) -> pd.DataFrame:
 
 
 def comparar_algoritmos(df: pd.DataFrame) -> pd.DataFrame:
-    """Justifica la elección de Random Forest (requisito de justificación).
-
-    Compara, sobre el mismo conjunto de variables, cuatro alternativas de
-    complejidad creciente: dos reglas sin aprendizaje y dos modelos entrenados
-    más simples que el ensamble.
-    """
     entrenables = {
         "Árbol de decisión (prof. 3)": DecisionTreeClassifier(
             max_depth=3, random_state=SEMILLA, class_weight="balanced"
@@ -123,11 +94,6 @@ def comparar_algoritmos(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def comparar_variables(df: pd.DataFrame) -> pd.DataFrame:
-    """Justifica el conjunto de variables, con el algoritmo fijo.
-
-    Muestra que ni el tiempo ni los sensores bastan por separado: el aporte
-    está en la combinación.
-    """
     configs = {
         "Solo tiempo": ["progreso"],
         "Solo sensores": ["temperatura", "humedad", "ph"],
@@ -219,8 +185,6 @@ def main():
         print(f"  {f:14s} {imp:.3f}")
 
     # ---------- Exportación ----------
-    # Junto al modelo se guardan sus métricas, para que la aplicación pueda
-    # mostrarlas sin recalcular nada ni tener números escritos a mano.
     reporte = classification_report(
         test["calidad"], pred, labels=CLASES, zero_division=0, output_dict=True
     )

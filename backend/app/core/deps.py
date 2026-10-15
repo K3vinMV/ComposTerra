@@ -1,9 +1,3 @@
-"""Dependencias compartidas — protección JWT de endpoints.
-
-Uso en cualquier router:
-    @router.get("/lotes")
-    def listar(usuario: Usuario = Depends(get_current_user)): ...
-"""
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session

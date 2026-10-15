@@ -4,7 +4,7 @@ from decimal import Decimal
 
 from sqlalchemy import (
     DECIMAL, BigInteger, Date, DateTime, Enum, ForeignKey, Index, SmallInteger,
-    String, func,
+    Boolean, String, func,
 )
 from sqlalchemy.dialects.mysql import BIGINT, INTEGER
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -47,6 +47,9 @@ class Lote(Base):
     predicciones: Mapped[list["Prediccion"]] = relationship(
         back_populates="lote", cascade="all, delete-orphan", passive_deletes=True
     )
+    alertas: Mapped[list["Alerta"]] = relationship(
+        back_populates="lote", cascade="all, delete-orphan", passive_deletes=True
+    )
 
 
 class RegistroSensor(Base):
@@ -84,3 +87,28 @@ class Prediccion(Base):
     fecha: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
     lote: Mapped["Lote"] = relationship(back_populates="predicciones")
+
+class Alerta(Base):
+    """Episodio de desviación de un lote: se abre al salir de rango y se cierra al volver."""
+    __tablename__ = "alertas"
+    __table_args__ = (Index("idx_alertas_lote_abiertas", "id_lote", "cerrada_en"),)
+
+    id: Mapped[int] = mapped_column(
+        BIGINT(unsigned=True), primary_key=True, autoincrement=True
+    )
+    id_lote: Mapped[int] = mapped_column(
+        INTEGER(unsigned=True), ForeignKey("lotes.id", ondelete="CASCADE")
+    )
+    tipo: Mapped[str] = mapped_column(
+        Enum("temperatura", "humedad", "ph", "sin_datos", name="tipo_alerta_enum")
+    )
+    direccion: Mapped[str | None] = mapped_column(
+        Enum("bajo", "alto", name="direccion_enum"), nullable=True
+    )
+    valor: Mapped[Decimal | None] = mapped_column(DECIMAL(6, 2), nullable=True)
+    abierta_en: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    cerrada_en: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    notificada: Mapped[bool] = mapped_column(Boolean, server_default="0")
+    notificada_cierre: Mapped[bool] = mapped_column(Boolean, server_default="0")
+
+    lote: Mapped["Lote"] = relationship(back_populates="alertas")

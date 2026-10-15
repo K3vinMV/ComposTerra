@@ -1,5 +1,4 @@
-"""Hashing de contraseñas (bcrypt) y tokens JWT.
-"""
+"""Hashing de contraseñas (bcrypt) y tokens JWT"""
 from datetime import datetime, timedelta, timezone
 
 import jwt
@@ -27,12 +26,11 @@ def create_access_token(data: dict) -> str:
 
 
 def decode_token(token: str) -> dict | None:
-    """Devuelve los datos del token, o None si es inválido o expiró."""
     try:
         return jwt.decode(
             token,
             settings.jwt_secret,
-            algorithms=[settings.jwt_algorithm],  # nunca confiar en el header
+            algorithms=[settings.jwt_algorithm],  
         )
     except jwt.PyJWTError:
         return None

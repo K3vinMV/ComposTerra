@@ -57,14 +57,7 @@ class RegistroCreate(BaseModel):
 
 
 def _como_utc(valor: datetime) -> datetime:
-    """Marca como UTC las fechas que vienen sin zona horaria.
-
-    La base guarda todo en UTC, pero MySQL devuelve datetimes "ingenuos", sin
-    indicar a qué zona pertenecen. Al serializarlos así, el navegador los
-    interpretaría como hora local y mostraría un desfase.
-
-    Declarando la zona explícitamente, cada cliente convierte a la suya.
-    """
+    
     return valor if valor.tzinfo else valor.replace(tzinfo=timezone.utc)
 
 
@@ -99,8 +92,23 @@ class PrediccionOut(BaseModel):
 
 
 class PrediccionDetalleOut(PrediccionOut):
-    """Predicción recién generada, con el desglose de la votación del ensamble.
-    """
 
     votos: dict | None = None
     entradas: dict | None = None
+
+
+# ------------------------------- Alertas -----------------------------
+class AlertaOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    id_lote: int
+    tipo: Literal["temperatura", "humedad", "ph", "sin_datos"]
+    direccion: Literal["bajo", "alto"] | None
+    valor: Decimal | None
+    abierta_en: datetime
+    cerrada_en: datetime | None
+
+    @field_serializer("abierta_en", "cerrada_en")
+    def _serializar_fechas(self, valor: datetime | None) -> datetime | None:
+        return _como_utc(valor) if valor else None

@@ -1,26 +1,3 @@
--- =====================================================================
--- Datos de ejemplo para desarrollo y demostración
---
--- Uso: mysql -u root -p < seed.sql
---
--- Las fechas son RELATIVAS a la fecha de ejecución (CURDATE / NOW), para que
--- el conjunto siga siendo coherente sin importar cuándo se cargue. Si fueran
--- fechas fijas, el avance del ciclo de cada lote se desajustaría con el tiempo
--- y los estados dejarían de tener sentido.
---
--- Los seis lotes cubren todos los estados que el sistema puede mostrar:
---
---   L-001  fase activa, parámetros correctos      -> Óptimo
---   L-002  fase activa, humedad baja              -> Advertencia
---   L-003  fase de maduración, evolución normal   -> Maduración
---   L-004  fase activa, pH ácido                  -> Advertencia
---   L-005  recién registrado, sin lecturas        -> Sin lecturas
---   L-006  ciclo terminado, con historial         -> Finalizado
---
--- Nota: el usuario administrador NO se crea aquí. Se crea con
--- backend/scripts/crear_admin.py, para generar el hash bcrypt correctamente.
--- =====================================================================
-
 USE composta_db;
 
 -- Limpieza previa (permite recargar el seed sin duplicar)

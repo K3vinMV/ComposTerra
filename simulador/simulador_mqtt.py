@@ -1,11 +1,4 @@
-"""Simulador de sensor de composta — versión MQTT para AWS IoT Core.
-
-AUTENTICACIÓN
--------------
-    AmazonRootCA1.pem             
-    xxxx-certificate.pem.crt      
-    xxxx-private.pem.key           
-"""
+"""Simulador de sensor MQTT AWS IoT Core"""
 import argparse
 import json
 import os
@@ -26,11 +19,7 @@ PUERTO_MQTT = 8883  # MQTT sobre TLS
 
 
 def localizar_certificados() -> tuple[Path, Path, Path]:
-    """Encuentra los tres archivos por su extensión, sin depender del nombre.
-
-    AWS les pone un prefijo aleatorio al descargarlos, así que buscarlos por
-    patrón evita tener que renombrarlos a mano.
-    """
+   
     if not CERTS_DIR.is_dir():
         sys.exit(
             f"No se encontró el directorio de certificados: {CERTS_DIR}\n"
@@ -102,9 +91,6 @@ def main():
     parser.add_argument("--intervalo", type=float, default=INTERVALO_DEFAULT)
     args = parser.parse_args()
 
-    # Cada entrada de --sensor produce una instancia independiente de
-    # SensorComposta: los lotes evolucionan por separado, igual que lo harían
-    # pilas distintas con su propio sensor.
     sensores = {}
     if args.sensor:
         for entrada in args.sensor:
@@ -127,8 +113,6 @@ def main():
     cliente = crear_cliente()
     print(f"Conectando a {IOT_ENDPOINT} ...")
     cliente.connect(IOT_ENDPOINT, PUERTO_MQTT, keepalive=60)
-    # loop_start mantiene la conexión viva en segundo plano y reconecta solo
-    # si se cae, sin que el bucle principal tenga que ocuparse.
     cliente.loop_start()
 
     print(f"\nSensores activos (publicando cada {args.intervalo}s):")

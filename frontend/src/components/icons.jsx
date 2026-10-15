@@ -24,3 +24,6 @@ export const IconoCalendario = (p) => <Icono d="M5 6 H19 V20 H5 Z M5 10 H19 M9 3
 export const IconoReloj = (p) => <Icono d="M12 4 a8 8 0 1 0 0.01 0 M12 8 V12 L15 14" {...p} />
 export const IconoAlerta = (p) => <Icono d="M12 4.5 L21.5 19.5 H2.5 Z M12 10 V14.5 M12 17 L12 17.01" {...p} />
 export const IconoOk = (p) => <Icono d="M12 3.5 a8.5 8.5 0 1 0 0.01 0 M8 12.5 L10.8 15.2 L16 9.5" {...p} />
+export const IconoCampana = (p) => (
+  <Icono d="M6 16 V11 a6 6 0 0 1 12 0 V16 L19.5 18 H4.5 Z M10 20.5 a2 2 0 0 0 4 0" {...p} />
+)

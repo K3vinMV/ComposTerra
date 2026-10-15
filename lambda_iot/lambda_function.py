@@ -1,12 +1,4 @@
-"""Procesador de telemetría IoT — AWS Lambda.
-
-VARIABLES DE ENTORNO
---------------------
-    DB_HOST      endpoint de la instancia RDS
-    DB_USER      usuario de la base de datos
-    DB_PASSWORD  contraseña
-    DB_NAME      (composta_db)
-"""
+"""Procesador de telemetría Lambda"""
 import json
 import logging
 import os
@@ -48,7 +40,6 @@ def _conectar():
 
 
 def _validar(mensaje: dict) -> tuple[int, float, float, float]:
-    """Comprueba el mensaje y devuelve sus valores ya convertidos."""
     faltantes = [c for c in ("id_lote", "temperatura", "humedad", "ph") if c not in mensaje]
     if faltantes:
         raise ValueError(f"faltan campos en el mensaje: {', '.join(faltantes)}")
@@ -67,7 +58,6 @@ def _validar(mensaje: dict) -> tuple[int, float, float, float]:
 
 
 def lambda_handler(event, context):
-    """Punto de entrada. `event` es el JSON publicado por el sensor."""
     log.info("Mensaje recibido: %s", json.dumps(event))
 
     try:

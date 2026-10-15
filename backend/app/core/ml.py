@@ -1,7 +1,4 @@
-"""Servicio de clasificación del estado del proceso de compostaje.
-
-    {"modelo": ..., "features": [...], "clases": [...], ...}
-"""
+"""Servicio de clasificación del estado del proceso de compostaje"""
 from functools import lru_cache
 from pathlib import Path
 
@@ -10,7 +7,6 @@ import pandas as pd
 
 from app.config import settings
 
-# Debe coincidir con FEATURES en ml/entrenar_modelo.py
 FEATURES = ["progreso", "temperatura", "humedad", "ph"]
 
 
@@ -18,7 +14,6 @@ FEATURES = ["progreso", "temperatura", "humedad", "ph"]
 def _cargar_bundle() -> dict:
     ruta = Path(settings.ml_model_path)
     if not ruta.is_absolute():
-        # relativo a backend/ (directorio desde el que se ejecuta uvicorn)
         ruta = Path(__file__).resolve().parents[2] / ruta
     if not ruta.exists():
         raise FileNotFoundError(
@@ -26,14 +21,12 @@ def _cargar_bundle() -> dict:
             "python ml/preparar_dataset.py && python ml/entrenar_modelo.py"
         )
     bundle = joblib.load(ruta)
-    # Compatibilidad: si el .joblib es un modelo suelto, se envuelve
     if not isinstance(bundle, dict):
         bundle = {"modelo": bundle, "features": FEATURES}
     return bundle
 
 
 def obtener_metricas() -> dict:
-    """Métricas del modelo en producción, generadas durante el entrenamiento."""
     bundle = _cargar_bundle()
     metricas = bundle.get("metricas")
     if metricas is None:
@@ -46,21 +39,7 @@ def obtener_metricas() -> dict:
 def predecir_estado(
     progreso: float, temperatura: float, humedad: float, ph: float
 ) -> tuple[str, float, dict]:
-    """Clasifica el estado del proceso de un lote.
 
-    Args:
-        progreso: avance del ciclo, de 0 (inicio) a 1 (fin esperado).
-        temperatura: promedio reciente en °C.
-        humedad: promedio reciente en %.
-        ph: promedio reciente.
-
-    Returns:
-        (resultado, confianza, votos) donde `resultado` es la clase más votada,
-        `confianza` el porcentaje de árboles que la eligieron, y `votos` el
-        desglose completo del ensamble: cuántos árboles votaron por cada clase.
-        El desglose permite mostrar de dónde sale la confianza en lugar de
-        presentarla como un número sin origen.
-    """
     bundle = _cargar_bundle()
     modelo = bundle["modelo"]
     features = bundle.get("features", FEATURES)

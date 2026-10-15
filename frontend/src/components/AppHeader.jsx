@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { IconoCalendario, IconoReloj } from './icons'
+import AlertasMonitor from './AlertasMonitor'
 
 const TITULOS = {
   '/dashboard': ['Resumen general del sistema'],
@@ -33,12 +34,15 @@ const AppHeader = () => {
         <div className="cm-titulo">{titulo}</div>
         <div className="cm-subtitulo">{subtitulo}</div>
       </div>
-      <div className="cm-chip-fecha">
-        <IconoCalendario size={15} />
-        <span>{fecha}</span>
-        <span style={{ color: 'rgba(250,249,246,0.35)' }}>·</span>
-        <IconoReloj size={15} />
-        <span>{hora}</span>
+      <div className="cm-header-derecha">
+        <AlertasMonitor />
+        <div className="cm-chip-fecha">
+          <IconoCalendario size={15} />
+          <span>{fecha}</span>
+          <span style={{ color: 'rgba(250,249,246,0.35)' }}>·</span>
+          <IconoReloj size={15} />
+          <span>{hora}</span>
+        </div>
       </div>
     </div>
   )

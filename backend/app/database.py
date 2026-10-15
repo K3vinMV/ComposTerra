@@ -1,8 +1,4 @@
-"""Conexión a MySQL con SQLAlchemy.
-
-Local → MySQL local. AWS → RDS MySQL (solo cambia DATABASE_URL).
-pool_pre_ping evita errores por conexiones muertas (importante en Lambda/RDS).
-"""
+"""Conexión a MySQL con SQLAlchemy."""
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
@@ -12,9 +8,6 @@ engine = create_engine(
     settings.database_url,
     pool_pre_ping=True,
     pool_recycle=3600,
-    # Todas las marcas de tiempo se guardan en UTC, sin importar la zona del
-    # servidor. Así la base es la misma en la máquina de desarrollo y en RDS,
-    # y cada cliente muestra las horas en su propia zona horaria.
     connect_args={"init_command": "SET time_zone = '+00:00'"},
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

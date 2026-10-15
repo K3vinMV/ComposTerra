@@ -1,21 +1,12 @@
-"""Configuración central del backend.
-
-Todos los valores se leen de variables de entorno (archivo .env en local,
-variables de la instancia en AWS). El código es idéntico en ambos entornos:
-lo único que cambia son estos valores.
-"""
+"""Configuración del backend"""
 import sys
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-# Valor de ejemplo que viene en .env.example. Sirve para desarrollo, pero el
-# sistema se niega a arrancar en producción si sigue puesto.
 SECRETO_DE_EJEMPLO = "dev-secret-cambiar"
 
 
 class Settings(BaseSettings):
-    # Entorno: "desarrollo" o "produccion". En producción se exigen
-    # credenciales propias y se ocultan las páginas de documentación.
     entorno: str = "desarrollo"
 
     database_url: str = "mysql+pymysql://root:password@localhost:3306/composta_db"
@@ -24,15 +15,16 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 480
 
-    # Orígenes permitidos por CORS, separados por coma.
     cors_origins: str = "http://localhost:3000"
 
-    # Prefijo bajo el que se publican los endpoints.
-    # Local: vacío  ->  /lotes
-    # AWS:   /api   ->  /api/lotes   (CloudFront enruta /api/* hacia la EC2)
     api_prefix: str = ""
 
     ml_model_path: str = "../ml/modelos/modelo_composta.joblib"
+
+    telegram_bot_token: str = ""
+    telegram_chat_id: str = ""
+    alertas_intervalo_s: int = 60      # cada cuánto se revisan los lotes
+    alertas_sin_datos_min: int = 15    # minutos sin lecturas para avisar
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
@@ -49,11 +41,7 @@ settings = Settings()
 
 
 def validar_configuracion() -> None:
-    """Impide arrancar en producción con credenciales de ejemplo.
 
-    Es preferible que el servicio no levante a que quede publicado firmando
-    tokens con un secreto que está a la vista en el repositorio.
-    """
     if not settings.es_produccion:
         return
 

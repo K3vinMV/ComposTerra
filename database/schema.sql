@@ -1,10 +1,4 @@
--- =====================================================================
--- Sistema de Monitoreo y Predicción de Calidad de Composta
--- Schema MySQL 8 — compatible local y AWS RDS sin cambios
--- Uso: mysql -u root -p < schema.sql
--- =====================================================================
-
-CREATE DATABASE IF NOT EXISTS composta_db
+  CREATE DATABASE IF NOT EXISTS composta_db
   CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;
 
@@ -31,9 +25,6 @@ CREATE TABLE IF NOT EXISTS lotes (
   fecha_inicio       DATE           NOT NULL,
   material_principal VARCHAR(100)   NOT NULL,
   peso_kg            DECIMAL(8,2)   NOT NULL,
-  -- Duración esperada del ciclo. Se usa para normalizar el tiempo transcurrido
-  -- (progreso = días transcurridos / duración estimada), que es una de las
-  -- variables de entrada del modelo de clasificación.
   duracion_estimada_dias SMALLINT UNSIGNED NOT NULL DEFAULT 120,
   estado             ENUM('activo', 'finalizado') NOT NULL DEFAULT 'activo',
   PRIMARY KEY (id)
@@ -68,6 +59,26 @@ CREATE TABLE IF NOT EXISTS predicciones (
   PRIMARY KEY (id),
   KEY idx_predicciones_lote (id_lote),
   CONSTRAINT fk_predicciones_lote
+    FOREIGN KEY (id_lote) REFERENCES lotes (id)
+    ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- ---------------------------------------------------------------------
+-- alertas
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS alertas (
+  id                BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  id_lote           INT UNSIGNED    NOT NULL,
+  tipo              ENUM('temperatura', 'humedad', 'ph', 'sin_datos') NOT NULL,
+  direccion         ENUM('bajo', 'alto') NULL,       
+  valor             DECIMAL(6,2)    NULL,            -- promedio de las últimas lecturas
+  abierta_en        DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  cerrada_en        DATETIME        NULL,            
+  notificada        TINYINT(1)      NOT NULL DEFAULT 0,  
+  notificada_cierre TINYINT(1)      NOT NULL DEFAULT 0, 
+  PRIMARY KEY (id),
+  KEY idx_alertas_lote_abiertas (id_lote, cerrada_en),
+  CONSTRAINT fk_alertas_lote
     FOREIGN KEY (id_lote) REFERENCES lotes (id)
     ON DELETE CASCADE
 ) ENGINE=InnoDB;
