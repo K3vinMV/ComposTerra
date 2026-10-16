@@ -1,0 +1,19 @@
+# Servicio del monitor de alertas en la EC2.
+# Instalación:
+#   sudo cp deploy/composterra-alertas.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now composterra-alertas
+[Unit]
+Description=ComposTerra - monitor de alertas (Telegram)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=ubuntu
+WorkingDirectory=/home/ubuntu/ComposTerra/backend
+ExecStart=/home/ubuntu/ComposTerra/backend/venv/bin/python scripts/monitor_alertas.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

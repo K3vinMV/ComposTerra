@@ -102,12 +102,12 @@ class Alerta(Base):
     tipo: Mapped[str] = mapped_column(
         Enum("temperatura", "humedad", "ph", "sin_datos", name="tipo_alerta_enum")
     )
-    direccion: Mapped[str | None] = mapped_column(
+    direccion: Mapped[str] = mapped_column(
         Enum("bajo", "alto", name="direccion_enum"), nullable=True
     )
-    valor: Mapped[Decimal | None] = mapped_column(DECIMAL(6, 2), nullable=True)
+    valor: Mapped[Decimal] = mapped_column(DECIMAL(6, 2), nullable=True)
     abierta_en: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
-    cerrada_en: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    cerrada_en: Mapped[datetime] = mapped_column(DateTime, nullable=True)
     notificada: Mapped[bool] = mapped_column(Boolean, server_default="0")
     notificada_cierre: Mapped[bool] = mapped_column(Boolean, server_default="0")
 
