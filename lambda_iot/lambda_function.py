@@ -74,10 +74,12 @@ def lambda_handler(event, context):
             lote = cursor.fetchone()
 
             if lote is None:
+                conexion.rollback()  # cierra la transacción: si no, la conexión reutilizada no ve lotes nuevos
                 log.warning("El lote %s no existe; se descarta la lectura", id_lote)
                 return {"guardado": False, "motivo": "lote inexistente"}
 
             if lote["estado"] != "activo":
+                conexion.rollback()
                 log.warning("El lote %s está finalizado; se descarta la lectura", id_lote)
                 return {"guardado": False, "motivo": "lote finalizado"}
 

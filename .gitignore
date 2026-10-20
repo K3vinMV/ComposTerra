@@ -22,3 +22,6 @@ PROJECT_CONTEXT.md
 
 simulador/certs/
 lambda_iot/*.zip
+# Firmware ESP32 (credenciales WiFi y certificados IoT)
+firmware/**/secrets.h
+firmware/certs/
