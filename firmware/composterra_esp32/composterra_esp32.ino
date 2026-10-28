@@ -6,9 +6,9 @@
 #include <DallasTemperature.h>
 #include "secrets.h"
 
-const int ID_LOTE = 8;         // id del lote de prueba en el dashboard
+const int ID_LOTE = 8;         
 const int PIN_DS18B20 = 4;
-const int PIN_HUMEDAD = 34;    // analógicos solo en GPIO 32-39
+const int PIN_HUMEDAD = 34;    
 const int PIN_PH = 33;
 
 OneWire oneWire(PIN_DS18B20);
