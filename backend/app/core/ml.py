@@ -1,4 +1,4 @@
-"""Servicio de clasificación del estado del proceso de compostaje"""
+"""Carga el modelo y hace las predicciones"""
 from functools import lru_cache
 from pathlib import Path
 

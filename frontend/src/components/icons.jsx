@@ -1,4 +1,4 @@
-/** Iconos SVG del diseño ComposTerra (trazos del archivo .dc.html). */
+// Iconos SVG
 import React from 'react'
 
 const Icono = ({ d, size = 18, color = 'currentColor', ...props }) => (

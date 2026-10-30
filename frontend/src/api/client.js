@@ -1,9 +1,4 @@
-/**
- * Cliente Axios central.
- * - Agrega el JWT a cada petición
- * - Si el token expira (401), limpia sesión y manda a /login
- * - En AWS solo cambia VITE_API_URL al dominio de API Gateway
- */
+// Cliente de axios: agrega el JWT y si expira (401) regresa al login
 import axios from 'axios'
 
 const client = axios.create({

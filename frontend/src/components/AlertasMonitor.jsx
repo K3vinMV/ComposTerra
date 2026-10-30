@@ -37,7 +37,7 @@ const AlertasMonitor = () => {
         }
         ultimoId.current = Math.max(ultimoId.current ?? 0, maxId)
       } catch {
-        // Sin conexión momentánea: se reintenta en el siguiente ciclo.
+        // si falla se intenta otra vez en el siguiente ciclo
       }
     }
     consultar()

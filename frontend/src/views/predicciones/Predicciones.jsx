@@ -1,10 +1,9 @@
-/** Predicciones — diseño glass: generar + resultado con confianza + historial. */
+// Vista de predicciones
 import React, { useEffect, useState } from 'react'
 import { CSpinner } from '@coreui/react'
 import { getLotes, getPredicciones, crearPrediccion } from '../../api/composta'
 
-// La API devuelve los valores en minúscula (ENUM de la BD); aquí se traducen a
-// la etiqueta visible, su estilo de badge y el color de la barra de confianza.
+// etiqueta y colores de cada clase
 const ETIQUETA = { optimo: 'Óptimo', aceptable: 'Aceptable', deficiente: 'Deficiente' }
 const CLASE_CALIDAD = { optimo: 'ok', aceptable: 'warn', deficiente: 'bad' }
 const COLOR_BARRA = { optimo: '#A8D5B0', aceptable: '#E8C574', deficiente: '#E5A98F' }
@@ -93,7 +92,7 @@ const Predicciones = () => {
               </div>
             </div>
 
-            {/* De dónde sale esa confianza: la votación del ensamble */}
+            {/* votos de los árboles */}
             {ultima.votos && (
               <div style={{ marginTop: 22, textAlign: 'left' }}>
                 <div style={{ fontSize: 12.5, fontWeight: 600, marginBottom: 3 }}>
@@ -139,7 +138,7 @@ const Predicciones = () => {
               </div>
             )}
 
-            {/* Entradas exactas que recibió el modelo */}
+            {/* entradas del modelo */}
             {ultima.entradas && (
               <div
                 style={{

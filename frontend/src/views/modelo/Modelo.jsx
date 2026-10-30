@@ -1,6 +1,4 @@
-/**
- * Vista Modelo
- */
+// Vista del modelo
 import React, { useEffect, useState } from 'react'
 import { CSpinner } from '@coreui/react'
 import { getInfoModelo } from '../../api/composta'

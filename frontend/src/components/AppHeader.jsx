@@ -1,4 +1,4 @@
-/** Header del diseño: título por vista + chip de fecha/hora en vivo. */
+// Header con el título de cada vista y la fecha/hora
 import React, { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { IconoCalendario, IconoReloj } from './icons'

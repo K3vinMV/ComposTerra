@@ -1,4 +1,4 @@
-/** Layout principal: fondo glass + sidebar + main con header. */
+// Layout: fondo, sidebar y contenido
 import React from 'react'
 import { AppContent, AppSidebar, AppHeader } from '../components/index'
 

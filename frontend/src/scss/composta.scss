@@ -1,6 +1,4 @@
-// ============================================================
-// ComposTerra — diseño glass (importado de Claude Design)
-// ============================================================
+// Estilos de ComposTerra
 
 :root {
   --acento: #4a7c59;
@@ -44,7 +42,7 @@ body {
 .cm-bg-foto {
   position: absolute;
   inset: -48px;
-  background-image: url('/fondo-naturaleza.jpg'); // colocar la foto en frontend/public/
+  background-image: url('/fondo-naturaleza.jpg'); // foto en frontend/public/
   background-size: cover;
   background-position: center;
   filter: blur(26px) saturate(1.08) brightness(0.85);
@@ -411,7 +409,7 @@ a:hover { color: var(--crema); }
   .cm-main { padding: 18px 16px 26px; }
 }
 
-// ---------------------------------------------------------- Alertas
+// ---------- Alertas (campana) ----------
 .cm-header-derecha { display: flex; align-items: center; gap: 10px; }
 
 .cm-alertas { position: relative; }

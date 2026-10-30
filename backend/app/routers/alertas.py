@@ -1,4 +1,4 @@
-"""GET /alertas — historial de alertas para el tablero"""
+"""Endpoint de alertas"""
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import select
 from sqlalchemy.orm import Session

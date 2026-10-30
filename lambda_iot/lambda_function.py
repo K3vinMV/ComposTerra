@@ -8,7 +8,7 @@ import pymysql
 log = logging.getLogger()
 log.setLevel(logging.INFO)
 
-# Rangos físicos admisibles. 
+# rangos válidos de cada sensor
 LIMITES = {
     "temperatura": (-10.0, 100.0),
     "humedad": (0.0, 100.0),
@@ -63,7 +63,7 @@ def lambda_handler(event, context):
     try:
         id_lote, temperatura, humedad, ph = _validar(event)
     except (ValueError, TypeError, KeyError) as e:
-        # Mensaje mal formado: se descarta. Volver a intentarlo no lo arreglaría.
+        # si el mensaje viene mal se descarta
         log.error("Mensaje inválido, se descarta: %s", e)
         return {"guardado": False, "motivo": str(e)}
 
@@ -74,7 +74,7 @@ def lambda_handler(event, context):
             lote = cursor.fetchone()
 
             if lote is None:
-                conexion.rollback()  # cierra la transacción: si no, la conexión reutilizada no ve lotes nuevos
+                conexion.rollback()  # cerrar la transacción, si no no ve los lotes nuevos
                 log.warning("El lote %s no existe; se descarta la lectura", id_lote)
                 return {"guardado": False, "motivo": "lote inexistente"}
 

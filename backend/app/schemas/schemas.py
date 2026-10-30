@@ -1,4 +1,4 @@
-"""Schemas Pydantic — validación de entrada y formato de salida de la API."""
+"""Schemas de Pydantic para validar lo que entra y sale de la API"""
 from datetime import date, datetime, timezone
 from decimal import Decimal
 from typing import Literal
@@ -32,7 +32,7 @@ class LoteCreate(BaseModel):
     fecha_inicio: date
     material_principal: str = Field(max_length=100)
     peso_kg: Decimal = Field(gt=0)
-    # Duración esperada del ciclo; se usa para normalizar el tiempo en el modelo
+    # duración del ciclo, se usa para calcular el avance
     duracion_estimada_dias: int = Field(default=120, ge=1, le=365)
 
 
@@ -49,7 +49,7 @@ class LoteOut(BaseModel):
 
 # --------------------------- Registros sensor ------------------------
 class RegistroCreate(BaseModel):
-    """Payload que envía el simulador de sensor."""
+    """Lectura que manda el sensor"""
     id_lote: int
     temperatura: Decimal = Field(ge=-10, le=100)
     humedad: Decimal = Field(ge=0, le=100)

@@ -1,4 +1,4 @@
-/** Login glass — diseño ComposTerra. */
+// Login
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CSpinner } from '@coreui/react'

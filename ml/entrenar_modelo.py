@@ -24,7 +24,7 @@ N_PARTICIONES = 20
 TEST_SIZE = 0.25
 SEMILLA = 42
 
-# Rangos óptimos de referencia del proceso 
+# rangos óptimos del proceso
 RANGOS = {"temperatura": (45, 65), "humedad": (40, 60), "ph": (6, 8)}
 
 

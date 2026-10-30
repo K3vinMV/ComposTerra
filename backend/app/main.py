@@ -1,4 +1,4 @@
-"""Punto de entrada de la API"""
+"""API principal"""
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -42,5 +42,5 @@ try:
     from mangum import Mangum
 
     handler = Mangum(app)
-except ImportError:  # pragma: no cover
+except ImportError:
     handler = None

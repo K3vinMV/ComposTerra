@@ -1,13 +1,4 @@
-"""Simulador de sensor de composta — versión local (HTTP).
-
-Escenarios:
-    termofilico → fase activa: caliente y húmedo, dentro de rango (default)
-    maduro      → fase final: frío y seco, composta lista
-    seco        → humedad por debajo del rango (dispara alerta)
-    frio        → temperatura por debajo del rango (dispara alerta)
-    acido       → pH por debajo del rango (dispara alerta)
-
-"""
+"""Simulador del sensor, versión local por HTTP"""
 import argparse
 import os
 import random
@@ -15,13 +6,11 @@ import time
 
 import requests
 
-#   Credenciales de usuario administrador para autenticación en la API
 API_URL = os.getenv("COMPOSTERRA_API", "http://localhost:8000")
 EMAIL = os.getenv("COMPOSTERRA_EMAIL", "admin@composterra.mx")
 PASSWORD = os.getenv("COMPOSTERRA_PASSWORD")
 INTERVALO_DEFAULT = 5  # segundos
 
-# (valor inicial, mínimo, máximo, deriva máxima por lectura)
 ESCENARIOS = {
     # Fase activa: la pila está trabajando. Dentro de los rangos óptimos.
     "termofilico": {"temp": (55.0, 45.0, 65.0, 0.8), "hum": (50.0, 40.0, 60.0, 1.0), "ph": (7.0, 6.0, 8.0, 0.08)},
@@ -35,10 +24,6 @@ ESCENARIOS = {
 ESCENARIO_DEFAULT = "termofilico"
 
 
-# Ruido de medición: desviación estándar del error de cada sensor.
-#   DS18B20 (temperatura de sonda)  ±0.5 °C
-#   Sensor capacitivo de humedad    ±2 %
-#   Sonda de pH analógica           ±0.1
 RUIDO = {"temp": 0.5, "hum": 2.0, "ph": 0.1}
 
 
@@ -52,22 +37,22 @@ class SensorComposta:
 
     @staticmethod
     def _derivar(valor, vmin, vmax, paso):
-        """Random walk acotado: el valor real del proceso evoluciona."""
+        """El valor real cambia poco a poco (random walk)"""
         valor += random.uniform(-paso, paso)
         return max(vmin, min(vmax, valor))
 
     @staticmethod
     def _medir(valor_real, sigma, limite_min, limite_max):
-        """Agrega error de medición gaussiano y acota a límites físicos."""
+        """Le suma el error del sensor"""
         return max(limite_min, min(limite_max, random.gauss(valor_real, sigma)))
 
     def leer(self) -> dict:
-        # El proceso evoluciona (estado interno, sin ruido)
+        # valor real del proceso
         self.temp = self._derivar(self.temp, self.temp_min, self.temp_max, self.temp_paso)
         self.hum = self._derivar(self.hum, self.hum_min, self.hum_max, self.hum_paso)
         self.ph = self._derivar(self.ph, self.ph_min, self.ph_max, self.ph_paso)
 
-        # El sensor lo mide con su error propio
+        # lo que mide el sensor
         return {
             "temperatura": round(self._medir(self.temp, RUIDO["temp"], -10, 100), 2),
             "humedad": round(self._medir(self.hum, RUIDO["hum"], 0, 100), 2),
@@ -86,7 +71,7 @@ def obtener_token() -> str:
 
 
 def enviar_lectura(token: str, id_lote: int, lectura: dict) -> requests.Response:
-    """Versión local: HTTP POST. En AWS se reemplaza por publish MQTT."""
+    """Manda la lectura por HTTP"""
     return requests.post(
         f"{API_URL}/registros",
         json={"id_lote": id_lote, **lectura},
@@ -117,7 +102,7 @@ def main():
         lectura = sensor.leer()
         try:
             r = enviar_lectura(token, args.lote, lectura)
-            if r.status_code == 401:  # token expirado → re-login
+            if r.status_code == 401:  # token expirado
                 token = obtener_token()
                 r = enviar_lectura(token, args.lote, lectura)
             estado = "OK" if r.status_code == 201 else f"ERROR {r.status_code}: {r.text}"

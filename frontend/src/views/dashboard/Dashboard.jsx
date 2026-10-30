@@ -1,8 +1,4 @@
-/**
- * Dashboard glass — diseño ComposTerra con datos reales:
- * KPIs (lotes activos + 3 métricas en vivo), gráfica histórica,
- * anillo de estado y alertas. Poll cada 5 s.
- */
+// Dashboard: KPIs, gráfica, estado del lote y alertas (se actualiza cada 5 s)
 import React, { useCallback, useEffect, useState } from 'react'
 import { CSpinner } from '@coreui/react'
 import {
@@ -93,7 +89,7 @@ const Dashboard = () => {
     const r = RANGOS[param]
     const v = ultimo ? ultimo[param] : null
     const alerta = v !== null && requiereAlerta(param, v, loteSel)
-    // Fuera del rango activo pero sin alerta = descenso normal de la maduración
+    // fuera de rango pero en maduración, no es alerta
     const normalizando = v !== null && !alerta && fueraDeRango(param, v)
 
     let etiqueta = 'Óptimo'

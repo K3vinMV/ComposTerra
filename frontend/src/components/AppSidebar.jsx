@@ -1,4 +1,4 @@
-/** Sidebar glass del diseño ComposTerra. */
+// Sidebar
 import React from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import {

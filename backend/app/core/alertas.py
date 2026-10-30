@@ -30,7 +30,7 @@ def _progreso(lote: Lote, hoy: date) -> float:
 
 
 def _evaluar(param: str, valor: float, progreso: float) -> str | None:
-    """Devuelve 'bajo', 'alto' o None si el valor no amerita alerta."""
+    """Regresa 'bajo', 'alto' o None si está en rango"""
     minimo, maximo, *_ = RANGOS[param]
     if valor < minimo:
         if progreso >= UMBRAL_MADURACION and param != "ph":
@@ -50,13 +50,13 @@ def _abierta(db: Session, id_lote: int, tipo: str) -> Alerta | None:
 
 
 def revisar_lotes(db: Session) -> None:
-    """Abre y cierra alertas según las lecturas actuales. No envía nada."""
+    """Revisa los lotes y abre o cierra alertas"""
     ahora = db.scalar(select(func.now()))   # hora de la base (UTC)
     hoy = ahora.date()
     lotes = db.scalars(select(Lote).where(Lote.estado == "activo")).all()
 
     for lote in lotes:
-        # ---- sensor sin reportar
+        # sensor sin reportar
         ultima = db.scalar(
             select(func.max(RegistroSensor.timestamp)).where(RegistroSensor.id_lote == lote.id)
         )
@@ -72,7 +72,7 @@ def revisar_lotes(db: Session) -> None:
                 and ahora - ultima <= timedelta(minutes=settings.alertas_sin_datos_min):
             alerta.cerrada_en = ahora
 
-        # ---- variables fuera de rango
+        # variables fuera de rango
         recientes = db.scalars(
             select(RegistroSensor)
             .where(
@@ -83,7 +83,7 @@ def revisar_lotes(db: Session) -> None:
             .limit(LECTURAS_PROMEDIO)
         ).all()
         if not recientes:
-            continue  # sin datos frescos no se decide nada sobre las variables
+            continue  # sin lecturas recientes no se evalúa
 
         progreso = _progreso(lote, hoy)
         for param in RANGOS:
@@ -112,7 +112,7 @@ def revisar_lotes(db: Session) -> None:
         raise
 
 
-# ------------------------------------------------------------------ Telegram
+# ---------- Telegram ----------
 def _texto(alerta: Alerta, cierre: bool) -> str:
     lote = f"<b>Lote {alerta.id_lote}</b>"
     if alerta.tipo == "sin_datos":
@@ -139,13 +139,13 @@ def _enviar_telegram(texto: str) -> bool:
     try:
         with urllib.request.urlopen(peticion, timeout=10) as r:
             return r.status == 200
-    except Exception as e:  # red caída, token inválido, etc.: se reintenta en el siguiente ciclo
+    except Exception as e:  # si falla se intenta en la siguiente vuelta
         log.warning("No se pudo enviar a Telegram: %s", e)
         return False
 
 
 def notificar_pendientes(db: Session) -> int:
-    """Envía las aperturas y cierres no notificados. Devuelve cuántos mensajes salieron."""
+    """Manda por Telegram las alertas pendientes"""
     telegram = bool(settings.telegram_bot_token and settings.telegram_chat_id)
     pendientes = db.scalars(
         select(Alerta).where((Alerta.notificada.is_(False)) | (
@@ -160,7 +160,7 @@ def notificar_pendientes(db: Session) -> int:
             continue
         if not alerta.notificada:
             if alerta.cerrada_en is not None:
-                # Se abrió y cerró entre dos revisiones: no vale la pena avisar ninguna de las dos.
+                # se abrió y cerró antes de avisar, no se manda nada
                 alerta.notificada = alerta.notificada_cierre = True
                 continue
             if _enviar_telegram(_texto(alerta, cierre=False)):

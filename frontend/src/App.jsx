@@ -1,4 +1,4 @@
-/** Raíz de la app: ruteo + protección por JWT. */
+// App principal: rutas y protección con JWT
 import React, { Suspense, useEffect } from 'react'
 import { HashRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { useSelector } from 'react-redux'
@@ -10,7 +10,7 @@ const DefaultLayout = React.lazy(() => import('./layout/DefaultLayout'))
 const Login = React.lazy(() => import('./views/pages/login/Login'))
 const Page404 = React.lazy(() => import('./views/pages/page404/Page404'))
 
-/** Si no hay token, manda a /login. */
+// si no hay token manda al login
 const RequireAuth = ({ children }) =>
   localStorage.getItem('token') ? children : <Navigate to="/login" replace />
 

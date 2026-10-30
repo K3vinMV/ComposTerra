@@ -1,4 +1,4 @@
-"""Endpoints de lotes y sus registros de sensor. Todos requieren JWT."""
+"""Endpoints de lotes y sus registros"""
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
@@ -70,11 +70,7 @@ def listar_registros(
     db: Session = Depends(get_db),
     _: Usuario = Depends(get_current_user),
 ):
-    """Registros más recientes primero.
-
-    - Dashboard tiempo real: limit=1 (última lectura)
-    - Gráfica histórica: limit alto (el frontend los reordena ascendente)
-    """
+    """Regresa los registros del más reciente al más viejo"""
     _obtener_lote(db, id_lote)
     return (
         db.query(RegistroSensor)

@@ -1,11 +1,4 @@
-"""POST /predicciones/{id_lote} — clasifica el estado actual del proceso.
-
-Flujo:
-    1. Calcula el avance del ciclo (progreso = días transcurridos / duración estimada).
-    2. Promedia las lecturas recientes del sensor (ventana de 24 h).
-    3. Clasifica con el Random Forest y persiste el resultado.
-
-"""
+"""Genera la predicción del estado de un lote"""
 from datetime import datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -37,12 +30,12 @@ def crear_prediccion(
     if lote is None:
         raise HTTPException(status_code=404, detail=f"Lote {id_lote} no encontrado")
 
-    # --- 1. Avance del ciclo, normalizado a [0, 1] ---
+    # avance del ciclo (0 a 1)
     dias_transcurridos = (datetime.now().date() - lote.fecha_inicio).days
     duracion = lote.duracion_estimada_dias or 120
     progreso = min(max(dias_transcurridos / duracion, 0.0), 1.0)
 
-    # --- 2. Lecturas recientes ---
+    # promedio de las lecturas de las últimas 24 h
     desde = datetime.now() - timedelta(hours=VENTANA_HORAS)
     consulta = db.query(
         func.avg(RegistroSensor.temperatura),
@@ -52,7 +45,7 @@ def crear_prediccion(
 
     promedios = consulta.filter(RegistroSensor.timestamp >= desde).one()
     if promedios[0] is None:
-        # Sin lecturas en la ventana: se recurre al historial completo del lote
+        # si no hay lecturas recientes se usa todo el historial
         promedios = consulta.one()
     if promedios[0] is None:
         raise HTTPException(
@@ -60,7 +53,7 @@ def crear_prediccion(
             detail=f"El lote {id_lote} no tiene registros de sensor; no se puede predecir",
         )
 
-    # --- 3. Clasificación ---
+    # clasificación
     temperatura, humedad, ph = (float(promedios[i]) for i in range(3))
     try:
         resultado, confianza, votos = predecir_estado(progreso, temperatura, humedad, ph)
@@ -76,8 +69,7 @@ def crear_prediccion(
         db.rollback()
         raise
 
-    # La respuesta incluye el desglose de la votación y las entradas usadas,
-    # para que la interfaz pueda explicar cómo se llegó al resultado.
+    # también se regresan los votos y las entradas para mostrarlos en el front
     return PrediccionDetalleOut(
         **PrediccionOut.model_validate(prediccion).model_dump(),
         votos=votos,

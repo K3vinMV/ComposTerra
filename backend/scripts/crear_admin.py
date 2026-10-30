@@ -1,5 +1,4 @@
-"""Crea el usuario administrador inicial.
-"""
+"""Crea el usuario admin"""
 import argparse
 import os
 import secrets
@@ -9,13 +8,12 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RAIZ))
 
-# Carga el .env para que ADMIN_EMAIL y ADMIN_PASSWORD puedan definirse ahí
-# igual que el resto de la configuración, y no solo como variables de shell.
+# carga el .env para leer ADMIN_EMAIL y ADMIN_PASSWORD
 try:
     from dotenv import load_dotenv
 
     load_dotenv(RAIZ / ".env")
-except ImportError:  # pragma: no cover
+except ImportError:
     pass
 
 from sqlalchemy import text
@@ -39,7 +37,7 @@ def main():
     password = os.getenv("ADMIN_PASSWORD")
     generada = password is None
     if generada:
-        # 16 bytes en base64 -> ~22 caracteres imprevisibles
+        # contraseña aleatoria
         password = secrets.token_urlsafe(16)
 
     db = SessionLocal()

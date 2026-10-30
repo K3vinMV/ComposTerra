@@ -1,4 +1,4 @@
-/** Funciones de la API del sistema de composta. */
+// Funciones para llamar a la API
 import client from './client'
 
 export const RANGOS = {
@@ -9,7 +9,7 @@ export const RANGOS = {
 
 export const UMBRAL_MADURACION = 0.7
 
-/** Avance del ciclo de un lote, de 0 (inicio) a 1 (fin esperado). */
+// avance del ciclo (0 a 1)
 export const progresoLote = (lote) => {
   if (!lote?.fecha_inicio) return 0
   const dias = (Date.now() - new Date(lote.fecha_inicio).getTime()) / 86400000
@@ -17,7 +17,7 @@ export const progresoLote = (lote) => {
   return Math.min(Math.max(dias / duracion, 0), 1)
 }
 
-/** Fase del proceso en la que se encuentra el lote. */
+// fase del lote según su avance
 export const fase = (lote) =>
   progresoLote(lote) >= UMBRAL_MADURACION ? 'maduracion' : 'activa'
 
@@ -51,14 +51,14 @@ export const getPredicciones = async (idLote) =>
 export const crearPrediccion = async (idLote) =>
   (await client.post(`/predicciones/${idLote}`)).data
 
-/** Métricas del modelo en producción, generadas durante el entrenamiento. */
+// métricas del modelo
 export const getInfoModelo = async () => (await client.get('/modelo/info')).data
 
-/** Alertas registradas por el monitor (scripts/monitor_alertas.py). */
+// alertas
 export const getAlertas = async (params = {}) =>
   (await client.get('/alertas', { params })).data
 
-/** Texto corto para mostrar una alerta en pantalla. */
+// texto de la alerta para mostrar
 export const describirAlerta = (a) => {
   if (a.tipo === 'sin_datos') return `Lote ${a.id_lote} · el sensor dejó de reportar`
   const r = RANGOS[a.tipo]

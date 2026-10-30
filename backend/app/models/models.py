@@ -1,4 +1,4 @@
-"""Modelos SQLAlchemy — espejo de database/schema.sql."""
+"""Modelos de SQLAlchemy (igual que schema.sql)"""
 from datetime import date, datetime
 from decimal import Decimal
 
@@ -35,7 +35,7 @@ class Lote(Base):
     fecha_inicio: Mapped[date] = mapped_column(Date)
     material_principal: Mapped[str] = mapped_column(String(100))
     peso_kg: Mapped[Decimal] = mapped_column(DECIMAL(8, 2))
-    # Duración esperada del ciclo; normaliza el tiempo para el modelo ML
+    # duración del ciclo, se usa para calcular el avance
     duracion_estimada_dias: Mapped[int] = mapped_column(SmallInteger, server_default="120")
     estado: Mapped[str] = mapped_column(
         Enum("activo", "finalizado", name="estado_enum"), server_default="activo"
@@ -89,7 +89,7 @@ class Prediccion(Base):
     lote: Mapped["Lote"] = relationship(back_populates="predicciones")
 
 class Alerta(Base):
-    """Episodio de desviación de un lote: se abre al salir de rango y se cierra al volver."""
+    """Se abre cuando un valor sale de rango y se cierra cuando regresa"""
     __tablename__ = "alertas"
     __table_args__ = (Index("idx_alertas_lote_abiertas", "id_lote", "cerrada_en"),)
 

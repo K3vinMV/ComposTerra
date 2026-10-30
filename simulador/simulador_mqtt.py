@@ -1,4 +1,4 @@
-"""Simulador de sensor MQTT AWS IoT Core"""
+"""Simulador del sensor por MQTT (AWS IoT Core)"""
 import argparse
 import json
 import os

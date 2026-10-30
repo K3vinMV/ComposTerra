@@ -1,4 +1,4 @@
-/** Rutas protegidas del sistema. */
+// Rutas protegidas
 import React from 'react'
 
 const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))

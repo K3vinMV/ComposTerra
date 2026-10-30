@@ -1,6 +1,4 @@
-"""GET /modelo/info — expone las métricas del modelo en producción.
-
-"""
+"""Regresa las métricas del modelo"""
 from fastapi import APIRouter, Depends, HTTPException
 
 from app.core.deps import get_current_user

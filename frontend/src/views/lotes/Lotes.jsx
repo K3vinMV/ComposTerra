@@ -1,4 +1,4 @@
-/** Lotes — tabla glass con últimas lecturas por lote, alta y finalizar. */
+// Vista de lotes: tabla, registrar y finalizar
 import React, { useEffect, useState } from 'react'
 import { CSpinner } from '@coreui/react'
 import {
@@ -35,8 +35,7 @@ const Lotes = () => {
       setFilas(
         lotes.map((l, i) => {
           const u = lecturas[i]
-          // El estado considera la fase: durante la maduración, enfriarse y
-          // secarse es lo esperado y no cuenta como advertencia.
+          // en maduración es normal que baje la temperatura y la humedad
           const params = u
             ? ['temperatura', 'humedad', 'ph'].some((p) => requiereAlerta(p, Number(u[p]), l))
               ? 'Advertencia'
@@ -54,7 +53,7 @@ const Lotes = () => {
 
   useEffect(() => {
     cargar()
-    const t = setInterval(cargar, 5000) // refresco en vivo, igual que el Dashboard
+    const t = setInterval(cargar, 5000) // se actualiza cada 5 s
     return () => clearInterval(t)
   }, [])
 

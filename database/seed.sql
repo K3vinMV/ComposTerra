@@ -1,6 +1,6 @@
 USE composta_db;
 
--- Limpieza previa (permite recargar el seed sin duplicar)
+-- Limpieza previa (sin duplicar)
 DELETE FROM predicciones;
 DELETE FROM registros_sensor;
 DELETE FROM lotes;
@@ -27,8 +27,7 @@ INSERT INTO lotes (fecha_inicio, material_principal, peso_kg, duracion_estimada_
 
 -- ---------------------------------------------------------------------
 -- Registros de sensor
--- Timestamps dentro de las últimas horas para que caigan en la ventana de
--- 24 h que usa el endpoint de predicción.
+-- fechas recientes para que entren en la ventana de 24 h
 -- ---------------------------------------------------------------------
 
 -- L-001 · termofílico: caliente y húmedo, todo en rango
@@ -80,7 +79,7 @@ INSERT INTO registros_sensor (id_lote, temperatura, humedad, ph, timestamp) VALU
 
 -- ---------------------------------------------------------------------
 -- Predicciones históricas del lote cerrado
--- Muestran la evolución del proceso: de deficiente al inicio a óptimo al final.
+-- de deficiente al inicio a óptimo al final
 -- ---------------------------------------------------------------------
 INSERT INTO predicciones (id_lote, resultado, confianza, fecha) VALUES
   (6, 'deficiente', 71.40, DATE_SUB(NOW(), INTERVAL 110 DAY)),

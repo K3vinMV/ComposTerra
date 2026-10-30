@@ -1,8 +1,4 @@
-"""POST /registros — ingesta de lecturas del sensor (simulador).
-
-AWS:   se reemplaza por MQTT → IoT Core → Lambda que inserta directo
-       en RDS; este endpoint puede conservarse para pruebas.
-"""
+"""Recibe lecturas por HTTP (para pruebas, en AWS entran por MQTT)"""
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 

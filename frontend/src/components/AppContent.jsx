@@ -1,4 +1,4 @@
-/** Renderiza las rutas protegidas dentro del main. */
+// Rutas protegidas
 import React, { Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { CSpinner } from '@coreui/react'
